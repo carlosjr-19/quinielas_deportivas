@@ -25,7 +25,9 @@ COPY --from=build-stage /app/frontend/dist ./backend/dist
 # Exponemos el puerto
 EXPOSE 8000
 
+# Cambiamos al directorio del backend para que los imports de Python funcionen
+WORKDIR /app/backend
+
 # Usamos Uvicorn para ejecutar la aplicación
 # Railway asigna el puerto mediante la variable de entorno $PORT
-# Como $PORT puede no estar en desarrollo, le asignamos 8000 por defecto
-CMD uvicorn backend.main:app --host 0.0.0.0 --port ${PORT:-8000}
+CMD uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}
