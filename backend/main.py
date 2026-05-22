@@ -37,6 +37,9 @@ if os.path.exists(frontend_dist):
     
     @app.get("/{catchall:path}")
     def serve_react_app(catchall: str):
+        file_path = os.path.join(frontend_dist, catchall)
+        if os.path.isfile(file_path):
+            return FileResponse(file_path)
         return FileResponse(os.path.join(frontend_dist, "index.html"))
 else:
     @app.get("/")
