@@ -8,9 +8,10 @@ class Pronostico(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     usuario_quiniela_id = Column(Integer, ForeignKey("usuarios_quiniela.id"))
-    partido_id = Column(String, ForeignKey("partidos.id"))
+    partido_id = Column(String, ForeignKey("partidos.id"), nullable=True)
     goles_local = Column(Integer, nullable=True) 
     goles_visitante = Column(Integer, nullable=True)
+    texto_libre = Column(String, nullable=True)
     puntos_obtenidos = Column(Integer, default=0) 
     insertado_a = Column(DateTime, default=datetime.datetime.utcnow) 
     

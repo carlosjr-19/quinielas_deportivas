@@ -15,7 +15,8 @@ const QuinielasPage = () => {
 
   const cargarQuinielas = async () => {
     try {
-      const res = await fetch('/api/quinielas/');
+      const url = usuario ? `/api/quinielas/?usuario_id=${usuario.id}` : '/api/quinielas/';
+      const res = await fetch(url);
       if (res.ok) {
         const data = await res.json();
         setQuinielas(data);
@@ -55,7 +56,7 @@ const QuinielasPage = () => {
   const quinielasFiltradas = quinielas.filter(q => 
     q.nombre.toLowerCase().includes(searchTerm.toLowerCase()) || 
     q.creador_nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    q.codigo_acceso.toLowerCase() === searchTerm.toUpperCase()
+    q.codigo_acceso.toLowerCase() === searchTerm.toLowerCase()
   );
 
   return (
@@ -112,12 +113,21 @@ const QuinielasPage = () => {
                       <span className="text-sm font-medium"><span className="text-gray-900 font-bold">{q.participantes}</span> participantes</span>
                     </div>
                   </div>
-                  <button 
-                    onClick={() => handleUnirse(q.codigo_acceso)}
-                    className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-sm transition-colors"
-                  >
-                    Unirse a esta Quiniela
-                  </button>
+                  {q.es_miembro ? (
+                    <button 
+                      onClick={() => navigate(`/quiniela/${q.codigo_acceso}`)}
+                      className="w-full py-2.5 bg-[#1c803c] hover:bg-[#14602a] text-white font-semibold rounded-lg shadow-sm transition-colors"
+                    >
+                      Ya eres miembro, Entrar
+                    </button>
+                  ) : (
+                    <button 
+                      onClick={() => handleUnirse(q.codigo_acceso)}
+                      className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-sm transition-colors"
+                    >
+                      Unirse a esta Quiniela
+                    </button>
+                  )}
                 </div>
               </div>
             ))}

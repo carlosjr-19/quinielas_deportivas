@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getTeamFlagUrl } from '../utils/helpers';
 
@@ -98,7 +98,7 @@ const QuinielaDetallePage = () => {
         <div className="bg-white rounded-lg shadow-md p-6">
           {activeTab === 'pronosticos' && <TabPronosticos partidos={partidos} miRegistro={miRegistro} />}
           {activeTab === 'posiciones' && <TabPosiciones miembros={miembros} />}
-          {activeTab === 'feed' && <TabFeed feed={feed} />}
+          {activeTab === 'feed' && <TabFeed feed={feed} miRegistro={miRegistro} recargar={cargarDatos} />}
           {activeTab === 'reglas' && <TabReglas reglas={quiniela.reglas} />}
           {activeTab === 'admin' && isAdmin && <TabAdmin quiniela={quiniela} miembros={miembros} reload={cargarDatos} />}
         </div>
@@ -110,10 +110,21 @@ const QuinielaDetallePage = () => {
 
 // --- Subcomponentes para cada Tab ---
 
-const TabPronosticos = ({ partidos, miRegistro }) => {
+const ModalAñadirPronostico = ({ partidos, miRegistro, onClose, onGuardado, misPronosticosActuales }) => {
   const [predicciones, setPredicciones] = useState({});
   const [guardando, setGuardando] = useState(false);
   const [mensaje, setMensaje] = useState({ text: '', type: '' });
+  const [manualInput, setManualInput] = useState('');
+
+  useEffect(() => {
+    const loadedPreds = {};
+    if (Array.isArray(misPronosticosActuales)) {
+      misPronosticosActuales.forEach(p => {
+        loadedPreds[p.partido_id] = { local: p.goles_local, visitante: p.goles_visitante };
+      });
+      setPredicciones(loadedPreds);
+    }
+  }, [misPronosticosActuales]);
 
   const handleScoreChange = (partidoId, isLocal, value) => {
     setPredicciones(prev => ({
@@ -125,11 +136,23 @@ const TabPronosticos = ({ partidos, miRegistro }) => {
     }));
   };
 
-  const guardarPronostico = async (partidoId) => {
-    const pred = predicciones[partidoId];
-    if (!pred || pred.local === undefined || pred.visitante === undefined || pred.local === '' || pred.visitante === '') {
-      setMensaje({ text: 'Ingresa ambos goles antes de guardar', type: 'error' });
-      return;
+  const isLocked = (fechaStr) => {
+    const matchDate = new Date(fechaStr).getTime();
+    return Date.now() > (matchDate - 600000); // 10 minutos
+  };
+
+  const guardarPronostico = async (partidoId, localScore, visitanteScore) => {
+    let finalLocal = localScore;
+    let finalVisitante = visitanteScore;
+    
+    if (finalLocal === undefined || finalVisitante === undefined) {
+      const pred = predicciones[partidoId];
+      if (!pred || pred.local === undefined || pred.visitante === undefined || pred.local === '' || pred.visitante === '') {
+        setMensaje({ text: 'Ingresa ambos goles antes de guardar', type: 'error' });
+        return;
+      }
+      finalLocal = pred.local;
+      finalVisitante = pred.visitante;
     }
     
     setGuardando(true);
@@ -141,15 +164,21 @@ const TabPronosticos = ({ partidos, miRegistro }) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           partido_id: partidoId,
-          goles_local: parseInt(pred.local),
-          goles_visitante: parseInt(pred.visitante),
+          goles_local: parseInt(finalLocal),
+          goles_visitante: parseInt(finalVisitante),
           usuario_quiniela_id: miRegistro.usuario_quiniela_id
         })
       });
       
       const data = await res.json();
       if (!res.ok) throw new Error(data.detail || 'Error al guardar');
-      setMensaje({ text: 'Pronóstico guardado con éxito', type: 'success' });
+      
+      setMensaje({ text: `Pronóstico guardado con éxito`, type: 'success' });
+      setPredicciones(prev => ({
+        ...prev,
+        [partidoId]: { local: finalLocal, visitante: finalVisitante }
+      }));
+      onGuardado();
     } catch (err) {
       setMensaje({ text: err.message, type: 'error' });
     } finally {
@@ -157,81 +186,279 @@ const TabPronosticos = ({ partidos, miRegistro }) => {
     }
   };
 
-  // Agrupar por fecha
-  const porFecha = partidos.reduce((acc, p) => {
-    const d = new Date(p.fecha).toLocaleDateString();
+  const guardarPronosticoLibre = async (texto) => {
+    setGuardando(true);
+    setMensaje({ text: '', type: '' });
+    
+    try {
+      const res = await fetch('/api/pronosticos/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          usuario_quiniela_id: miRegistro.usuario_quiniela_id,
+          texto_libre: texto
+        })
+      });
+      
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || 'Error al guardar');
+      
+      setMensaje({ text: `Pronóstico guardado con éxito`, type: 'success' });
+      setManualInput('');
+      onGuardado();
+    } catch (err) {
+      setMensaje({ text: err.message, type: 'error' });
+    } finally {
+      setGuardando(false);
+    }
+  };
+
+  const handleManualSubmit = () => {
+    if (!manualInput.trim()) return;
+    guardarPronosticoLibre(manualInput);
+  };
+
+  // Agrupar todos los partidos por fecha para renderizar, ordenándolos primero
+  const partidosOrdenados = [...partidos].sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
+  const partidosAgrupados = partidosOrdenados.reduce((acc, p) => {
+    const d = new Date(p.fecha).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
     if (!acc[d]) acc[d] = [];
     acc[d].push(p);
     return acc;
   }, {});
 
   return (
+    <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+      <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+        {/* Modal Header */}
+        <div className="flex justify-between items-center p-5 border-b bg-gray-50">
+          <h2 className="text-xl font-bold text-gray-800">Próximos Partidos</h2>
+          <button onClick={onClose} className="text-gray-400 hover:text-gray-700 hover:bg-gray-200 p-2 rounded-full transition-colors">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+          </button>
+        </div>
+
+        {/* Modal Body */}
+        <div className="p-6 overflow-y-auto flex-1 bg-gray-50">
+          
+          {/* Entrada Manual */}
+          <div className="mb-6 bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+            <h3 className="text-sm font-bold text-gray-700 mb-2">Entrada Rápida de Texto</h3>
+            <div className="flex gap-2">
+              <input 
+                type="text"
+                placeholder="Ejemplo: Mexico 1 - 0 South Africa"
+                className="flex-1 border border-gray-300 rounded-md px-4 py-2 focus:ring-2 focus:ring-[#1c803c] focus:outline-none"
+                value={manualInput}
+                onChange={e => setManualInput(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && handleManualSubmit()}
+              />
+              <button 
+                onClick={handleManualSubmit}
+                disabled={guardando}
+                className="bg-[#1c803c] hover:bg-[#14602a] text-white px-4 py-2 rounded-md font-semibold transition-colors disabled:opacity-70 whitespace-nowrap"
+              >
+                Analizar y Guardar
+              </button>
+            </div>
+          </div>
+
+          {mensaje.text && (
+            <div className={`p-3 mb-6 rounded text-sm font-medium ${mensaje.type === 'success' ? 'bg-green-100 text-green-800 border border-green-200' : 'bg-red-100 text-red-800 border border-red-200'}`}>
+              {mensaje.text}
+            </div>
+          )}
+          
+          {Object.keys(partidosAgrupados).length > 0 ? (
+            <div className="space-y-6">
+              {Object.keys(partidosAgrupados).map(fecha => (
+                <div key={fecha}>
+                  <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-3 px-1 border-b pb-2">
+                    {fecha}
+                  </h3>
+                  <div className="border border-gray-200 rounded-lg divide-y bg-white shadow-sm">
+                    {partidosAgrupados[fecha].map(p => {
+                      const locked = isLocked(p.fecha);
+                      return (
+                        <div key={p.id} className="p-4 flex flex-col md:flex-row items-center justify-between gap-4 hover:bg-gray-50 transition-colors">
+                          <div className="flex-1 text-center md:text-left text-sm text-gray-500 font-medium">
+                            {new Date(p.fecha).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} hrs
+                          </div>
+                          
+                          <div className="flex-[2] flex items-center justify-center gap-4 w-full md:w-auto">
+                            <div className="text-right font-bold text-gray-800 flex-1 truncate flex items-center justify-end gap-2">
+                              {p.equipo_local}
+                              {getTeamFlagUrl(p.equipo_local) ? (
+                                <img src={getTeamFlagUrl(p.equipo_local)} alt={p.equipo_local} className="w-6 h-auto shadow-sm rounded-sm" />
+                              ) : (
+                                <span className="text-lg">🏳️</span>
+                              )}
+                            </div>
+                            <input 
+                              type="number" 
+                              min="0"
+                              disabled={locked}
+                              className={`w-14 h-10 text-center border rounded-md text-lg font-bold outline-none transition-all ${locked ? 'bg-gray-100 text-gray-500 border-gray-200 cursor-not-allowed' : 'bg-white focus:ring-2 focus:ring-[#1c803c] border-gray-300'}`}
+                              value={predicciones[p.id]?.local ?? ''}
+                              onChange={(e) => handleScoreChange(p.id, true, e.target.value)}
+                            />
+                            <span className="text-gray-400 font-bold">-</span>
+                            <input 
+                              type="number" 
+                              min="0"
+                              disabled={locked}
+                              className={`w-14 h-10 text-center border rounded-md text-lg font-bold outline-none transition-all ${locked ? 'bg-gray-100 text-gray-500 border-gray-200 cursor-not-allowed' : 'bg-white focus:ring-2 focus:ring-[#1c803c] border-gray-300'}`}
+                              value={predicciones[p.id]?.visitante ?? ''}
+                              onChange={(e) => handleScoreChange(p.id, false, e.target.value)}
+                            />
+                            <div className="text-left font-bold text-gray-800 flex-1 truncate flex items-center gap-2">
+                              {getTeamFlagUrl(p.equipo_visitante) ? (
+                                <img src={getTeamFlagUrl(p.equipo_visitante)} alt={p.equipo_visitante} className="w-6 h-auto shadow-sm rounded-sm" />
+                              ) : (
+                                <span className="text-lg">🏳️</span>
+                              )}
+                              {p.equipo_visitante}
+                            </div>
+                          </div>
+                          
+                          <div className="flex-1 text-center md:text-right flex flex-col items-end justify-center">
+                            {locked ? (
+                              <span className="text-xs font-bold text-red-600 bg-red-50 px-3 py-1.5 rounded-md border border-red-100 uppercase tracking-wide flex items-center gap-1">
+                                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" /></svg>
+                                Bloqueado
+                              </span>
+                            ) : (
+                              <button 
+                                onClick={() => guardarPronostico(p.id)}
+                                disabled={guardando}
+                                className="bg-[#1c803c] hover:bg-[#14602a] text-white px-5 py-2 rounded-md text-sm font-semibold transition-colors shadow-sm disabled:opacity-70"
+                              >
+                                Guardar
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-10 bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg mb-4">
+              <svg className="w-12 h-12 text-gray-400 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+              <p className="text-gray-600 font-medium text-lg">No hay partidos disponibles.</p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const TabPronosticos = ({ partidos, miRegistro }) => {
+  const [misPronosticos, setMisPronosticos] = useState([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const cargarMisPronosticos = useCallback(() => {
+    if (miRegistro) {
+      fetch(`/api/pronosticos/usuario/${miRegistro.usuario_quiniela_id}`)
+        .then(res => res.json())
+        .then(data => {
+          if (Array.isArray(data)) {
+            setMisPronosticos(data);
+          }
+        })
+        .catch(err => console.error("Error al cargar mis pronósticos:", err));
+    }
+  }, [miRegistro]);
+
+  useEffect(() => {
+    cargarMisPronosticos();
+  }, [cargarMisPronosticos]);
+
+  return (
     <div>
-      <h2 className="text-xl font-bold mb-4">Ingresa tus Pronósticos</h2>
-      {mensaje.text && (
-        <div className={`p-3 mb-4 rounded text-sm ${mensaje.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-          {mensaje.text}
+      <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4 border-b pb-4">
+        <h2 className="text-2xl font-bold text-gray-800">Mi Historial de Pronósticos</h2>
+        <button 
+          onClick={() => setIsModalOpen(true)}
+          className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-6 rounded-lg shadow-md hover:shadow-lg transition-all flex items-center gap-2 transform hover:-translate-y-0.5"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path></svg>
+          Añadir Pronóstico
+        </button>
+      </div>
+
+      {misPronosticos.length > 0 ? (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {misPronosticos.map(p => (
+            <div key={p.id} className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow">
+              <div className="flex justify-between items-center mb-3">
+                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  {new Date(p.fecha_partido).toLocaleDateString('es-ES', {day: '2-digit', month: 'short'})} · {new Date(p.fecha_partido).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}
+                </span>
+                <span className="text-xs font-bold bg-green-100 text-green-800 px-2.5 py-1 rounded-full border border-green-200">
+                  {p.puntos_obtenidos !== null ? `${p.puntos_obtenidos} pts` : 'Pendiente'}
+                </span>
+              </div>
+              
+              {p.texto_libre ? (
+                <div className="mt-4 bg-blue-50 p-4 rounded-lg border border-blue-100 flex flex-col items-center justify-center text-center">
+                  <span className="text-xs font-bold text-blue-500 uppercase tracking-wider mb-2">Predicción Libre</span>
+                  <p className="text-gray-800 font-medium italic">"{p.texto_libre}"</p>
+                </div>
+              ) : (
+                <div className="flex items-center justify-between mt-4 bg-gray-50 p-3 rounded-lg border border-gray-100 flex-wrap sm:flex-nowrap gap-2">
+                  <div className="flex flex-col items-center flex-1 min-w-0">
+                    {getTeamFlagUrl(p.equipo_local) ? (
+                      <img src={getTeamFlagUrl(p.equipo_local)} alt={p.equipo_local} className="w-8 h-auto shadow-sm rounded-sm mb-1" />
+                    ) : (
+                      <span className="text-2xl mb-1">🏳️</span>
+                    )}
+                    <span className="text-sm font-bold text-gray-700 truncate w-full text-center">{p.equipo_local}</span>
+                  </div>
+                  
+                  <div className="px-4 py-2 bg-white rounded-md border-2 border-gray-200 shadow-sm mx-2 shrink-0">
+                    <span className="text-xl font-black text-gray-800 tracking-widest">{p.goles_local}-{p.goles_visitante}</span>
+                  </div>
+                  
+                  <div className="flex flex-col items-center flex-1 min-w-0">
+                    {getTeamFlagUrl(p.equipo_visitante) ? (
+                      <img src={getTeamFlagUrl(p.equipo_visitante)} alt={p.equipo_visitante} className="w-8 h-auto shadow-sm rounded-sm mb-1" />
+                    ) : (
+                      <span className="text-2xl mb-1">🏳️</span>
+                    )}
+                    <span className="text-sm font-bold text-gray-700 truncate w-full text-center">{p.equipo_visitante}</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-16 bg-gray-50 border-2 border-dashed border-gray-300 rounded-xl">
+          <svg className="w-16 h-16 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+          <h3 className="text-lg font-bold text-gray-700 mb-1">Aún no has hecho ningún pronóstico</h3>
+          <p className="text-gray-500 max-w-md mx-auto mb-6">Empieza a predecir los resultados de los partidos para ganar puntos y escalar en la tabla de posiciones.</p>
+          <button 
+            onClick={() => setIsModalOpen(true)} 
+            className="bg-[#1c803c] hover:bg-[#14602a] text-white font-bold py-2.5 px-6 rounded-lg shadow-sm transition-colors"
+          >
+            Añadir mi primer pronóstico
+          </button>
         </div>
       )}
-      
-      {Object.entries(porFecha).map(([fecha, lista]) => (
-        <div key={fecha} className="mb-8">
-          <h3 className="text-lg font-semibold bg-gray-200 px-4 py-2 rounded-t-md">{fecha}</h3>
-          <div className="border border-gray-200 rounded-b-md divide-y">
-            {lista.map(p => (
-              <div key={p.id} className="p-4 flex flex-col md:flex-row items-center justify-between gap-4">
-                <div className="flex-1 text-center md:text-left text-sm text-gray-500">
-                  {new Date(p.fecha).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} - {p.estado}
-                </div>
-                
-                <div className="flex-2 flex items-center justify-center gap-4 w-full md:w-auto">
-                  <div className="text-right font-semibold flex-1 truncate flex items-center justify-end gap-2">
-                    {p.equipo_local}
-                    {getTeamFlagUrl(p.equipo_local) ? (
-                      <img src={getTeamFlagUrl(p.equipo_local)} alt={p.equipo_local} className="w-6 h-auto shadow-sm rounded-sm" />
-                    ) : (
-                      <span className="text-lg">🏳️</span>
-                    )}
-                  </div>
-                  <input 
-                    type="number" 
-                    min="0"
-                    className="w-16 h-10 text-center border rounded-md text-lg focus:ring-2 focus:ring-[#1c803c] outline-none"
-                    value={predicciones[p.id]?.local ?? ''}
-                    onChange={(e) => handleScoreChange(p.id, true, e.target.value)}
-                  />
-                  <span className="text-gray-400 font-bold">-</span>
-                  <input 
-                    type="number" 
-                    min="0"
-                    className="w-16 h-10 text-center border rounded-md text-lg focus:ring-2 focus:ring-[#1c803c] outline-none"
-                    value={predicciones[p.id]?.visitante ?? ''}
-                    onChange={(e) => handleScoreChange(p.id, false, e.target.value)}
-                  />
-                  <div className="text-left font-semibold flex-1 truncate flex items-center gap-2">
-                    {getTeamFlagUrl(p.equipo_visitante) ? (
-                      <img src={getTeamFlagUrl(p.equipo_visitante)} alt={p.equipo_visitante} className="w-6 h-auto shadow-sm rounded-sm" />
-                    ) : (
-                      <span className="text-lg">🏳️</span>
-                    )}
-                    {p.equipo_visitante}
-                  </div>
-                </div>
-                
-                <div className="flex-1 text-center md:text-right">
-                  <button 
-                    onClick={() => guardarPronostico(p.id)}
-                    disabled={guardando}
-                    className="bg-[#1c803c] hover:bg-[#14602a] text-white px-4 py-2 rounded-md text-sm transition-colors w-full md:w-auto"
-                  >
-                    Guardar
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      ))}
+
+      {isModalOpen && (
+        <ModalAñadirPronostico 
+           partidos={partidos} 
+           miRegistro={miRegistro} 
+           onClose={() => setIsModalOpen(false)} 
+           onGuardado={cargarMisPronosticos} 
+           misPronosticosActuales={misPronosticos}
+        />
+      )}
     </div>
   );
 };
@@ -271,20 +498,69 @@ const TabPosiciones = ({ miembros }) => {
   );
 };
 
-const TabFeed = ({ feed }) => {
+const TabFeed = ({ feed, miRegistro, recargar }) => {
+  const asignarPuntos = async (pronosticoId, puntos) => {
+    if (puntos < 0 || puntos > 5) {
+      alert("Los puntos deben estar entre 0 y 5");
+      return;
+    }
+    try {
+      const res = await fetch(`/api/pronosticos/${pronosticoId}/puntos`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ puntos: parseInt(puntos) })
+      });
+      if (res.ok) {
+        recargar();
+      } else {
+        alert("Error al asignar puntos");
+      }
+    } catch (e) {
+      alert("Error de conexión");
+    }
+  };
+
   return (
     <div>
       <h2 className="text-xl font-bold mb-4">Pronósticos Actuales de la Comunidad</h2>
       <div className="space-y-4">
         {feed.map(f => (
-          <div key={f.id} className="p-4 border rounded-lg bg-gray-50 flex flex-col md:flex-row justify-between md:items-center gap-2">
-            <div>
+          <div key={f.id} className="p-4 border rounded-lg bg-gray-50 flex flex-col md:flex-row justify-between md:items-center gap-4">
+            <div className="flex-1">
               <span className="font-bold text-gray-800">{f.usuario}</span>
-              <span className="text-xs text-gray-400 ml-2">{new Date(f.fecha).toLocaleString()}</span>
+              <span className="text-xs text-gray-500 ml-2 block sm:inline">Publicado el {new Date(f.fecha).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', hour: '2-digit', minute:'2-digit' })} hrs</span>
             </div>
-            <div className="bg-white px-4 py-2 rounded shadow-sm border text-sm flex gap-4">
-              <span className="text-gray-600">{f.partido}</span>
-              <span className="font-bold text-black">{f.pronostico}</span>
+            
+            <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+              <div className="bg-white px-4 py-2 rounded shadow-sm border text-sm flex gap-4 w-full sm:w-auto">
+                <span className="text-gray-600 truncate max-w-[150px] sm:max-w-[200px]">{f.partido}</span>
+                <span className="font-bold text-black whitespace-nowrap">{f.pronostico}</span>
+              </div>
+              
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <span className="text-xs font-bold bg-green-100 text-green-800 px-2 py-1 rounded-full whitespace-nowrap shrink-0">
+                  {f.puntos_obtenidos !== null && f.puntos_obtenidos !== undefined ? `${f.puntos_obtenidos} pts` : '0 pts'}
+                </span>
+                
+                {miRegistro?.rol === 'admin' && (
+                  <div className="flex items-center gap-1 bg-white p-1 rounded border shadow-sm shrink-0">
+                    <input 
+                      type="number" 
+                      min="0" max="5" 
+                      className="w-12 text-center border rounded text-sm px-1 py-1 focus:ring-blue-500 focus:border-blue-500"
+                      placeholder="0-5"
+                      id={`puntos-${f.id}`}
+                      defaultValue={f.puntos_obtenidos || 0}
+                    />
+                    <button 
+                      onClick={() => asignarPuntos(f.id, document.getElementById(`puntos-${f.id}`).value)}
+                      className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-2 py-1.5 rounded font-medium transition-colors"
+                    >
+                      OK
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         ))}
@@ -358,12 +634,30 @@ const TabAdmin = ({ quiniela, miembros, reload }) => {
     } catch (e) {}
   };
 
+  const sincronizarMundial = async () => {
+    if (!window.confirm("¿Deseas descargar y sincronizar todos los partidos del Mundial 2026? Esto actualizará la base de datos.")) return;
+    setMensaje('Sincronizando partidos, por favor espera...');
+    try {
+      const res = await fetch('/api/torneos/sync', { method: 'POST' });
+      if (res.ok) {
+        setMensaje('Partidos sincronizados correctamente. Recarga la página.');
+        reload();
+      } else {
+        alert("Error al sincronizar");
+        setMensaje('');
+      }
+    } catch (e) {
+      alert("Error al sincronizar");
+      setMensaje('');
+    }
+  };
+
   return (
     <div className="space-y-8">
       {/* Edición Básica */}
       <div>
         <h2 className="text-xl font-bold mb-4 border-b pb-2">Configuración</h2>
-        {mensaje && <p className="text-green-600 mb-2">{mensaje}</p>}
+        {mensaje && <p className="text-blue-600 mb-4 font-semibold p-3 bg-blue-50 rounded-lg">{mensaje}</p>}
         <div className="space-y-4 max-w-md">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Nombre de la Quiniela</label>
@@ -381,7 +675,15 @@ const TabAdmin = ({ quiniela, miembros, reload }) => {
               onChange={e => setReglas(e.target.value)} 
             />
           </div>
-          <button onClick={guardarConfig} className="bg-blue-600 text-white px-4 py-2 rounded">Guardar Cambios</button>
+          <div className="flex gap-4 pt-2">
+            <button onClick={guardarConfig} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-semibold transition-colors">Guardar Cambios</button>
+            <button onClick={sincronizarMundial} className="bg-[#1c803c] hover:bg-[#14602a] text-white px-4 py-2 rounded font-semibold transition-colors">
+              <span className="flex items-center gap-2">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                Sincronizar Partidos
+              </span>
+            </button>
+          </div>
         </div>
       </div>
 

@@ -52,9 +52,6 @@ const MatchPredictionList = () => {
                       <span className="text-xl mb-1">🏳️</span>
                     )}
                     <span className="font-bold text-sm text-gray-700 text-center truncate w-full">{match.equipo_local}</span>
-                    <div className="mt-2 w-10 h-10 flex items-center justify-center text-lg font-bold bg-gray-50 border border-gray-200 rounded-md text-gray-400">
-                      -
-                    </div>
                   </div>
                   
                   <div className="text-gray-300 font-bold text-xs">VS</div>
@@ -67,9 +64,6 @@ const MatchPredictionList = () => {
                       <span className="text-xl mb-1">🏳️</span>
                     )}
                     <span className="font-bold text-sm text-gray-700 text-center truncate w-full">{match.equipo_visitante}</span>
-                    <div className="mt-2 w-10 h-10 flex items-center justify-center text-lg font-bold bg-gray-50 border border-gray-200 rounded-md text-gray-400">
-                      -
-                    </div>
                   </div>
                 </div>
               </div>

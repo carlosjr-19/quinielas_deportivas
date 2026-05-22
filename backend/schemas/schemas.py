@@ -82,6 +82,7 @@ class QuinielaPublica(BaseModel):
     codigo_acceso: str
     creador_nombre: str
     participantes: int
+    es_miembro: Optional[bool] = False
     class Config:
         orm_mode = True
 
@@ -100,9 +101,10 @@ class UsuarioQuiniela(UsuarioQuinielaBase):
         orm_mode = True
 
 class PronosticoBase(BaseModel):
-    partido_id: str
+    partido_id: Optional[str] = None
     goles_local: Optional[int] = None
     goles_visitante: Optional[int] = None
+    texto_libre: Optional[str] = None
 
 class PronosticoCreate(PronosticoBase):
     usuario_quiniela_id: int
@@ -114,3 +116,6 @@ class Pronostico(PronosticoBase):
     insertado_a: datetime.datetime
     class Config:
         orm_mode = True
+
+class PronosticoPuntosUpdate(BaseModel):
+    puntos: int

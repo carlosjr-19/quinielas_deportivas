@@ -21,20 +21,33 @@ def generar_codigo_acceso(db: Session):
         if not existe:
             return codigo
 
+from typing import Optional
+
 @router.get("/", response_model=list[QuinielaPublica])
-def listar_quinielas(db: Session = Depends(get_db)):
+def listar_quinielas(usuario_id: Optional[int] = None, db: Session = Depends(get_db)):
     # Usamos un JOIN para obtener el nombre del creador y contar los participantes
     resultados = []
     quinielas = db.query(ModeloQuiniela).all()
     for q in quinielas:
         creador = db.query(ModeloUsuario).filter(ModeloUsuario.id == q.creador_id).first()
         participantes = db.query(ModeloUsuarioQuiniela).filter(ModeloUsuarioQuiniela.quiniela_id == q.id).count()
+        
+        es_miembro = False
+        if usuario_id:
+            existe_membresia = db.query(ModeloUsuarioQuiniela).filter(
+                ModeloUsuarioQuiniela.quiniela_id == q.id,
+                ModeloUsuarioQuiniela.usuario_id == usuario_id
+            ).first()
+            if existe_membresia:
+                es_miembro = True
+                
         resultados.append({
             "id": q.id,
             "nombre": q.nombre,
             "codigo_acceso": q.codigo_acceso,
             "creador_nombre": creador.nombre if creador else "Desconocido",
-            "participantes": participantes
+            "participantes": participantes,
+            "es_miembro": es_miembro
         })
     return resultados
 

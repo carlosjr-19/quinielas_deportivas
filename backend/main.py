@@ -9,7 +9,18 @@ from db.database import engine
 # Importamos los routers
 from routes import torneos, quinielas, usuarios, pronosticos, partidos
 
+from sqlalchemy import text
+
 models.Base.metadata.create_all(bind=engine)
+
+# Auto-migración para añadir texto_libre si no existe (útil para Railway u otros entornos)
+try:
+    with engine.connect() as conn:
+        conn.execute(text("ALTER TABLE pronosticos ADD COLUMN texto_libre VARCHAR"))
+        conn.commit()
+except Exception as e:
+    # Si la columna ya existe u otro error menor, ignoramos
+    pass
 
 app = FastAPI(title="Quinielas API")
 
