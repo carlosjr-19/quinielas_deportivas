@@ -100,9 +100,9 @@ const QuinielaDetallePage = () => {
         {/* Header de la Quiniela */}
         <div className="bg-white rounded-lg shadow-md p-6 mb-6">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
-            <div>
-              <h1 className="text-3xl font-bold text-[#1c803c]">{quiniela.nombre}</h1>
-              <p className="text-gray-500 mt-1">Código de Acceso: <span className="font-mono bg-gray-200 px-2 py-1 rounded text-black">{quiniela.codigo_acceso}</span></p>
+            <div className="w-full md:w-auto overflow-hidden">
+              <h1 className="text-2xl md:text-3xl font-bold text-[#1c803c] break-words">{quiniela.nombre}</h1>
+              <p className="text-gray-500 mt-1">Código de Acceso: <span className="font-mono bg-gray-200 px-2 py-1 rounded text-black break-all">{quiniela.codigo_acceso}</span></p>
             </div>
             <div className="mt-4 md:mt-0 text-right">
               <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 rounded-full uppercase font-semibold tracking-wide">
@@ -115,7 +115,7 @@ const QuinielaDetallePage = () => {
 
         {/* Navigation Tabs */}
         <div className="mb-6 border-b flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2">
-          <div className="flex overflow-x-auto hide-scrollbar space-x-6">
+          <div className="flex overflow-x-auto hide-scrollbar space-x-6 w-full">
             <button 
               className={`pb-2 whitespace-nowrap ${activeTab === 'pronosticos' ? 'border-b-2 border-[#1c803c] font-bold text-[#1c803c]' : 'text-gray-500'}`}
               onClick={() => setActiveTab('pronosticos')}
@@ -156,7 +156,7 @@ const QuinielaDetallePage = () => {
             )}
           </div>
           {!isAdmin && (
-            <button onClick={salirDeQuiniela} className="text-red-500 hover:text-red-700 text-sm font-semibold whitespace-nowrap px-4 border border-red-200 rounded-md py-1">
+            <button onClick={salirDeQuiniela} className="text-red-500 hover:text-red-700 text-sm font-semibold whitespace-nowrap px-4 border border-red-200 rounded-md py-1 self-start md:self-auto shrink-0 bg-red-50 hover:bg-red-100 transition-colors">
               Salir de la Quiniela
             </button>
           )}
