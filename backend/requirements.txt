@@ -5,3 +5,4 @@ passlib[bcrypt]
 pydantic
 psycopg2-binary
 python-dotenv
+requests

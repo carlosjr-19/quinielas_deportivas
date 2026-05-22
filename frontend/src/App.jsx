@@ -1,26 +1,65 @@
 import React from 'react';
-import MatchPredictionList from './components/MatchPredictionList';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import Navbar from './components/Navbar';
+import Footer from './components/Footer';
+import HomePage from './pages/HomePage';
+import QuinielasPage from './pages/QuinielasPage';
+import AuthPage from './pages/AuthPage';
+import DashboardPage from './pages/DashboardPage';
+import CrearQuinielaPage from './pages/CrearQuinielaPage';
+import ConfiguracionPage from './pages/ConfiguracionPage';
+import QuinielaDetallePage from './pages/QuinielaDetallePage';
+import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <header className="mb-10 text-center">
-        <h1 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">
-          Mi Quiniela
-        </h1>
-        <p className="text-gray-500 mt-2">¡Pon a prueba tus conocimientos deportivos!</p>
-      </header>
-
-      <main>
-        <MatchPredictionList />
-      </main>
-
-      <div className="mb-10 text-center">
-        <h2 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">
-          PROXIMAMENTE ...
-        </h2>
+    <BrowserRouter>
+      <div className="min-h-screen font-sans flex flex-col bg-gray-50">
+        <Navbar />
+        
+        <div className="flex-grow flex flex-col">
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/quinielas" element={<QuinielasPage />} />
+            <Route path="/ingresar" element={<AuthPage />} />
+            <Route 
+              path="/dashboard" 
+              element={
+                <ProtectedRoute>
+                  <DashboardPage />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/crear-quiniela" 
+              element={
+                <ProtectedRoute>
+                  <CrearQuinielaPage />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/configuracion" 
+              element={
+                <ProtectedRoute>
+                  <ConfiguracionPage />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/quiniela/:codigo" 
+              element={
+                <ProtectedRoute>
+                  <QuinielaDetallePage />
+                </ProtectedRoute>
+              } 
+            />
+          </Routes>
+        </div>
+        
+        <Footer />
       </div>
-    </div>
+    </BrowserRouter>
   );
 }
 

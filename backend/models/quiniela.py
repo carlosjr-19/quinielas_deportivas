@@ -8,9 +8,10 @@ class Quiniela(Base):
     id = Column(Integer, primary_key=True, index=True)
     codigo_acceso = Column(String, unique=True, index=True) # ej. QNL-8X2P
     nombre = Column(String, index=True)
-    creador_nombre = Column(String) 
+    creador_id = Column(Integer, ForeignKey("usuarios.id")) 
     torneo_id = Column(String, ForeignKey("torneos.id"))
     reglas = Column(String, nullable=True)
     
     torneo = relationship("Torneo", back_populates="quinielas")
+    creador = relationship("Usuario", back_populates="quinielas_creadas")
     usuarios = relationship("UsuarioQuiniela", back_populates="quiniela")

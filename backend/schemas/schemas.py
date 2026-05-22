@@ -30,31 +30,71 @@ class Partido(PartidoBase):
     class Config:
         orm_mode = True
 
+class UsuarioRegistro(BaseModel):
+    nombre: str
+    pin: str
+    confirm_pin: str
+
+class UsuarioLogin(BaseModel):
+    nombre: str
+    pin: str
+
+class UsuarioRespuesta(BaseModel):
+    id: int
+    nombre: str
+    class Config:
+        orm_mode = True
+
 class QuinielaBase(BaseModel):
     nombre: str
-    creador_nombre: str
     torneo_id: str
     reglas: Optional[str] = None
 
 class QuinielaCreate(QuinielaBase):
-    pin: str # El PIN plano, se hasheará antes de guardar al admin
+    creador_id: int
 
 class Quiniela(QuinielaBase):
     id: int
     codigo_acceso: str
+    creador_id: int
+    class Config:
+        orm_mode = True
+
+class QuinielaUpdate(BaseModel):
+    nombre: Optional[str] = None
+    reglas: Optional[str] = None
+
+class PuntosUpdate(BaseModel):
+    puntos: int
+
+class MiembroResponse(BaseModel):
+    usuario_quiniela_id: int
+    usuario_id: int
+    nombre: str
+    rol: str
+    puntos_totales: int
+    class Config:
+        orm_mode = True
+
+class QuinielaPublica(BaseModel):
+    id: int
+    nombre: str
+    codigo_acceso: str
+    creador_nombre: str
+    participantes: int
     class Config:
         orm_mode = True
 
 class UsuarioQuinielaBase(BaseModel):
-    nombre: str
     rol: str = "usuario"
 
-class UsuarioQuinielaCreate(UsuarioQuinielaBase):
-    pin: str
+class UsuarioQuinielaCreate(BaseModel):
+    usuario_id: int
     quiniela_codigo: str
 
 class UsuarioQuiniela(UsuarioQuinielaBase):
     id: int
+    usuario_id: int
     quiniela_id: int
     class Config:
         orm_mode = True

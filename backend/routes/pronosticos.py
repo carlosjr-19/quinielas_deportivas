@@ -59,3 +59,36 @@ def listar_pronosticos_usuario(usuario_id: int, db: Session = Depends(get_db)):
     """Obtener todos los pronósticos que ha hecho un usuario específico."""
     return db.query(Pronostico).filter(Pronostico.usuario_quiniela_id == usuario_id).all()
 
+from models.usuario_quiniela import UsuarioQuiniela
+from models.usuario import Usuario
+from models.quiniela import Quiniela
+
+@router.get("/quiniela/{codigo_acceso}")
+def feed_pronosticos_quiniela(codigo_acceso: str, db: Session = Depends(get_db)):
+    # Obtener quiniela
+    quiniela = db.query(Quiniela).filter(Quiniela.codigo_acceso == codigo_acceso.upper()).first()
+    if not quiniela:
+        raise HTTPException(status_code=404, detail="Quiniela no encontrada")
+        
+    # Hacer join para obtener los pronosticos, el nombre de usuario y los equipos del partido
+    resultados = []
+    # Consultamos todos los pronosticos de los miembros de esta quiniela
+    pronosticos_db = db.query(Pronostico, Usuario.nombre, Partido.equipo_local, Partido.equipo_visitante)\
+        .join(UsuarioQuiniela, Pronostico.usuario_quiniela_id == UsuarioQuiniela.id)\
+        .join(Usuario, UsuarioQuiniela.usuario_id == Usuario.id)\
+        .join(Partido, Pronostico.partido_id == Partido.id)\
+        .filter(UsuarioQuiniela.quiniela_id == quiniela.id)\
+        .order_by(Pronostico.insertado_a.desc())\
+        .limit(50).all()
+        
+    for p, u_nombre, eq_local, eq_vis in pronosticos_db:
+        resultados.append({
+            "id": p.id,
+            "usuario": u_nombre,
+            "partido": f"{eq_local} vs {eq_vis}",
+            "pronostico": f"{p.goles_local} - {p.goles_visitante}",
+            "fecha": p.insertado_a.isoformat()
+        })
+        
+    return resultados
+
