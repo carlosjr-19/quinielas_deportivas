@@ -36,7 +36,8 @@ def listar_quinielas(usuario_id: Optional[int] = None, db: Session = Depends(get
         if usuario_id:
             existe_membresia = db.query(ModeloUsuarioQuiniela).filter(
                 ModeloUsuarioQuiniela.quiniela_id == q.id,
-                ModeloUsuarioQuiniela.usuario_id == usuario_id
+                ModeloUsuarioQuiniela.usuario_id == usuario_id,
+                ModeloUsuarioQuiniela.activo == True
             ).first()
             if existe_membresia:
                 es_miembro = True
@@ -106,7 +107,11 @@ def unirse_a_quiniela(union_in: UsuarioQuinielaCreate, db: Session = Depends(get
     ).first()
     
     if existe:
-        return existe # Ya está unido
+        if not existe.activo:
+            existe.activo = True
+            db.commit()
+            db.refresh(existe)
+        return existe # Ya está unido o se volvió a unir
         
     nuevo_miembro = ModeloUsuarioQuiniela(
         usuario_id=usuario.id,
@@ -141,7 +146,7 @@ def actualizar_quiniela(codigo_acceso: str, quiniela_in: QuinielaUpdate, db: Ses
     db.refresh(quiniela)
     return quiniela
 
-from schemas.schemas import MiembroResponse, PuntosUpdate
+from schemas.schemas import MiembroResponse, PuntosUpdate, RolUpdate
 
 @router.get("/{codigo_acceso}/miembros", response_model=list[MiembroResponse])
 def obtener_miembros(codigo_acceso: str, db: Session = Depends(get_db)):
@@ -190,3 +195,70 @@ def modificar_puntos(codigo_acceso: str, usuario_quiniela_id: int, puntos_in: Pu
     db.commit()
     return {"message": "Puntos actualizados"}
 
+@router.put("/{codigo_acceso}/miembros/{usuario_quiniela_id}/rol")
+def modificar_rol(codigo_acceso: str, usuario_quiniela_id: int, rol_in: RolUpdate, db: Session = Depends(get_db)):
+    miembro = db.query(ModeloUsuarioQuiniela).filter(ModeloUsuarioQuiniela.id == usuario_quiniela_id).first()
+    if not miembro:
+        raise HTTPException(status_code=404, detail="Miembro no encontrado")
+        
+    if miembro.rol == "admin":
+        raise HTTPException(status_code=400, detail="No se puede cambiar el rol del creador")
+        
+    if rol_in.rol not in ["usuario", "socio"]:
+        raise HTTPException(status_code=400, detail="Rol inválido")
+        
+    setattr(miembro, 'rol', rol_in.rol)
+    db.commit()
+    return {"message": f"Rol actualizado a {rol_in.rol}"}
+
+from models.feed import FeedItem, Reaccion
+from models.pronostico import Pronostico
+
+@router.delete("/{codigo_acceso}")
+def eliminar_quiniela(codigo_acceso: str, usuario_id: int, db: Session = Depends(get_db)):
+    quiniela = db.query(ModeloQuiniela).filter(ModeloQuiniela.codigo_acceso == codigo_acceso.upper()).first()
+    if not quiniela:
+        raise HTTPException(status_code=404, detail="Quiniela no encontrada")
+        
+    if quiniela.creador_id != usuario_id:
+        raise HTTPException(status_code=403, detail="No tienes permiso para eliminar esta quiniela")
+
+    # 1. Eliminar Reacciones relacionadas a esta quiniela (via feed_item)
+    feed_items = db.query(FeedItem.id).filter(FeedItem.quiniela_id == quiniela.id).subquery()
+    db.query(Reaccion).filter(Reaccion.feed_item_id.in_(feed_items)).delete(synchronize_session=False)
+    
+    # 2. Eliminar FeedItems
+    db.query(FeedItem).filter(FeedItem.quiniela_id == quiniela.id).delete(synchronize_session=False)
+    
+    # 3. Eliminar Pronosticos
+    usuarios_q = db.query(ModeloUsuarioQuiniela.id).filter(ModeloUsuarioQuiniela.quiniela_id == quiniela.id).subquery()
+    db.query(Pronostico).filter(Pronostico.usuario_quiniela_id.in_(usuarios_q)).delete(synchronize_session=False)
+    
+    # 4. Eliminar UsuariosQuiniela
+    db.query(ModeloUsuarioQuiniela).filter(ModeloUsuarioQuiniela.quiniela_id == quiniela.id).delete(synchronize_session=False)
+    
+    # 5. Eliminar Quiniela
+    db.delete(quiniela)
+    db.commit()
+    return {"message": "Quiniela eliminada correctamente"}
+
+@router.put("/{codigo_acceso}/salir")
+def salir_quiniela(codigo_acceso: str, usuario_id: int, db: Session = Depends(get_db)):
+    quiniela = db.query(ModeloQuiniela).filter(ModeloQuiniela.codigo_acceso == codigo_acceso.upper()).first()
+    if not quiniela:
+        raise HTTPException(status_code=404, detail="Quiniela no encontrada")
+        
+    miembro = db.query(ModeloUsuarioQuiniela).filter(
+        ModeloUsuarioQuiniela.quiniela_id == quiniela.id,
+        ModeloUsuarioQuiniela.usuario_id == usuario_id
+    ).first()
+    
+    if not miembro:
+        raise HTTPException(status_code=404, detail="No eres miembro de esta quiniela")
+        
+    if miembro.rol == 'admin':
+        raise HTTPException(status_code=400, detail="El creador no puede salir, solo eliminar la quiniela")
+        
+    miembro.activo = False
+    db.commit()
+    return {"message": "Has salido de la quiniela"}

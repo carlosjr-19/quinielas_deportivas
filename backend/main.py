@@ -7,7 +7,7 @@ import models
 from db.database import engine
 
 # Importamos los routers
-from routes import torneos, quinielas, usuarios, pronosticos, partidos
+from routes import torneos, quinielas, usuarios, pronosticos, partidos, feed
 
 from sqlalchemy import text
 
@@ -19,6 +19,13 @@ try:
         # 1. Asegurar columna texto_libre
         try:
             conn.execute(text("ALTER TABLE pronosticos ADD COLUMN texto_libre VARCHAR"))
+            conn.commit()
+        except Exception:
+            pass # Ya existe
+            
+        # 1.5 Asegurar columna activo en usuarios_quiniela
+        try:
+            conn.execute(text("ALTER TABLE usuarios_quiniela ADD COLUMN activo BOOLEAN DEFAULT TRUE"))
             conn.commit()
         except Exception:
             pass # Ya existe
@@ -53,6 +60,7 @@ app.include_router(quinielas.router, prefix="/api/quinielas", tags=["Quinielas"]
 app.include_router(usuarios.router, prefix="/api/usuarios", tags=["Usuarios"])
 app.include_router(pronosticos.router, prefix="/api/pronosticos", tags=["Pronosticos"])
 app.include_router(partidos.router, prefix="/api/partidos", tags=["Partidos"])
+app.include_router(feed.router, prefix="/api/feed", tags=["Feed"])
 
 # Montar React compilado (dist) si existe
 frontend_dist = os.path.join(os.path.dirname(os.path.abspath(__file__)), "dist")

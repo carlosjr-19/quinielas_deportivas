@@ -3,6 +3,10 @@ from sqlalchemy.orm import Session
 from db.database import get_db
 from models.pronostico import Pronostico
 from models.partido import Partido
+from models.usuario_quiniela import UsuarioQuiniela
+from models.usuario import Usuario
+from models.quiniela import Quiniela
+from models.feed import FeedItem
 from schemas.schemas import Pronostico as PronosticoSchema, PronosticoCreate, PronosticoPuntosUpdate
 from typing import List
 import datetime
@@ -41,6 +45,21 @@ def registrar_pronostico(pronostico_in: PronosticoCreate, db: Session = Depends(
             pronostico_existente.insertado_a = ahora
             db.commit()
             db.refresh(pronostico_existente)
+            
+            uq = db.query(UsuarioQuiniela).filter(UsuarioQuiniela.id == pronostico_in.usuario_quiniela_id).first()
+            if uq:
+                u = db.query(Usuario).filter(Usuario.id == uq.usuario_id).first()
+                nombre_usr = u.nombre if u else "Alguien"
+                nombre_partido = f"{partido.equipo_local} vs {partido.equipo_visitante}" if partido else "un partido"
+                evento = FeedItem(
+                    quiniela_id=uq.quiniela_id,
+                    usuario_quiniela_id=uq.id,
+                    tipo="EVENTO",
+                    contenido=f"{nombre_usr} ha modificado su pronóstico de {nombre_partido}"
+                )
+                db.add(evento)
+                db.commit()
+                
             return pronostico_existente
         else:
             # Si es la primera vez que predice este partido
@@ -54,6 +73,18 @@ def registrar_pronostico(pronostico_in: PronosticoCreate, db: Session = Depends(
             db.add(nuevo_pronostico)
             db.commit()
             db.refresh(nuevo_pronostico)
+            
+            uq = db.query(UsuarioQuiniela).filter(UsuarioQuiniela.id == pronostico_in.usuario_quiniela_id).first()
+            if uq:
+                evento = FeedItem(
+                    quiniela_id=uq.quiniela_id,
+                    usuario_quiniela_id=uq.id,
+                    tipo="PRONOSTICO",
+                    pronostico_id=nuevo_pronostico.id
+                )
+                db.add(evento)
+                db.commit()
+                
             return nuevo_pronostico
     else:
         # Es un pronóstico libre
@@ -68,6 +99,18 @@ def registrar_pronostico(pronostico_in: PronosticoCreate, db: Session = Depends(
         db.add(nuevo_pronostico)
         db.commit()
         db.refresh(nuevo_pronostico)
+        
+        uq = db.query(UsuarioQuiniela).filter(UsuarioQuiniela.id == pronostico_in.usuario_quiniela_id).first()
+        if uq:
+            evento = FeedItem(
+                quiniela_id=uq.quiniela_id,
+                usuario_quiniela_id=uq.id,
+                tipo="PRONOSTICO",
+                pronostico_id=nuevo_pronostico.id
+            )
+            db.add(evento)
+            db.commit()
+            
         return nuevo_pronostico
 
 @router.get("/usuario/{usuario_id}")
@@ -165,8 +208,28 @@ def actualizar_puntos(pronostico_id: int, puntos_update: PronosticoPuntosUpdate,
         raise HTTPException(status_code=400, detail="Los puntos deben estar entre 0 y 5")
         
     pronostico.puntos_obtenidos = puntos_update.puntos
+    pronostico.puntos_obtenidos = puntos_update.puntos
     db.commit()
     
+    uq = db.query(UsuarioQuiniela).filter(UsuarioQuiniela.id == pronostico.usuario_quiniela_id).first()
+    if uq:
+        u = db.query(Usuario).filter(Usuario.id == uq.usuario_id).first()
+        nombre_usr = u.nombre if u else "Alguien"
+        partido_nombre = "una predicción libre"
+        if pronostico.partido_id:
+            part = db.query(Partido).filter(Partido.id == pronostico.partido_id).first()
+            if part:
+                partido_nombre = f"{part.equipo_local} vs {part.equipo_visitante}"
+                
+        evento = FeedItem(
+            quiniela_id=uq.quiniela_id,
+            usuario_quiniela_id=uq.id,
+            tipo="EVENTO",
+            contenido=f"{nombre_usr} ha recibido {puntos_update.puntos} puntos por el pronóstico de {partido_nombre}"
+        )
+        db.add(evento)
+        db.commit()
+
     # Recalcular total del usuario
     total_puntos = db.query(func.sum(Pronostico.puntos_obtenidos))\
         .filter(Pronostico.usuario_quiniela_id == pronostico.usuario_quiniela_id)\
@@ -186,6 +249,26 @@ def eliminar_pronostico(pronostico_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Pronóstico no encontrado")
         
     usuario_quiniela_id = pronostico.usuario_quiniela_id
+    
+    uq = db.query(UsuarioQuiniela).filter(UsuarioQuiniela.id == pronostico.usuario_quiniela_id).first()
+    if uq:
+        u = db.query(Usuario).filter(Usuario.id == uq.usuario_id).first()
+        nombre_usr = u.nombre if u else "Alguien"
+        partido_nombre = "una predicción libre"
+        if pronostico.partido_id:
+            part = db.query(Partido).filter(Partido.id == pronostico.partido_id).first()
+            if part:
+                partido_nombre = f"{part.equipo_local} vs {part.equipo_visitante}"
+                
+        evento = FeedItem(
+            quiniela_id=uq.quiniela_id,
+            usuario_quiniela_id=uq.id,
+            tipo="EVENTO",
+            contenido=f"{nombre_usr} ha eliminado el pronóstico de {partido_nombre}"
+        )
+        db.add(evento)
+        # No hacemos commit aún, lo haremos junto con el delete
+    
     db.delete(pronostico)
     db.commit()
     
@@ -200,4 +283,41 @@ def eliminar_pronostico(pronostico_id: int, db: Session = Depends(get_db)):
         db.commit()
         
     return {"message": "Pronóstico eliminado"}
+
+@router.get("/quiniela/{codigo_acceso}/todas")
+def listar_todos_pronosticos(codigo_acceso: str, db: Session = Depends(get_db)):
+    quiniela = db.query(Quiniela).filter(Quiniela.codigo_acceso == codigo_acceso.upper()).first()
+    if not quiniela:
+        raise HTTPException(status_code=404, detail="Quiniela no encontrada")
+        
+    pronosticos_db = db.query(Pronostico, Usuario.nombre, Partido)\
+        .join(UsuarioQuiniela, Pronostico.usuario_quiniela_id == UsuarioQuiniela.id)\
+        .join(Usuario, UsuarioQuiniela.usuario_id == Usuario.id)\
+        .outerjoin(Partido, Pronostico.partido_id == Partido.id)\
+        .filter(UsuarioQuiniela.quiniela_id == quiniela.id)\
+        .order_by(Pronostico.insertado_a.desc())\
+        .all()
+        
+    resultados = []
+    for p, u_nombre, partido in pronosticos_db:
+        if partido:
+            resultados.append({
+                "id": p.id,
+                "usuario": u_nombre,
+                "partido": f"{partido.equipo_local} vs {partido.equipo_visitante}",
+                "pronostico": f"{p.goles_local} - {p.goles_visitante}",
+                "fecha": p.insertado_a.isoformat() + "Z",
+                "puntos_obtenidos": p.puntos_obtenidos
+            })
+        else:
+            resultados.append({
+                "id": p.id,
+                "usuario": u_nombre,
+                "partido": "Predicción Libre",
+                "pronostico": p.texto_libre,
+                "fecha": p.insertado_a.isoformat() + "Z",
+                "puntos_obtenidos": p.puntos_obtenidos
+            })
+            
+    return resultados
 
