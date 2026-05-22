@@ -67,6 +67,9 @@ class QuinielaUpdate(BaseModel):
 class PuntosUpdate(BaseModel):
     puntos: int
 
+class RolUpdate(BaseModel):
+    rol: str
+
 class MiembroResponse(BaseModel):
     usuario_quiniela_id: int
     usuario_id: int
@@ -119,3 +122,29 @@ class Pronostico(PronosticoBase):
 
 class PronosticoPuntosUpdate(BaseModel):
     puntos: int
+
+class MensajeCreate(BaseModel):
+    contenido: str
+    quiniela_codigo: str
+    usuario_quiniela_id: int
+
+class ReaccionToggle(BaseModel):
+    emoji: str
+
+class ReaccionResponse(BaseModel):
+    emoji: str
+    count: int
+    user_reacted: bool
+
+class FeedItemResponse(BaseModel):
+    id: int
+    tipo: str
+    contenido: Optional[str] = None
+    fecha: str
+    usuario: Optional[str] = None
+    usuario_id: Optional[int] = None
+    partido: Optional[str] = None
+    pronostico: Optional[str] = None
+    pronostico_id: Optional[int] = None
+    puntos_obtenidos: Optional[int] = None
+    reacciones: List[ReaccionResponse] = []

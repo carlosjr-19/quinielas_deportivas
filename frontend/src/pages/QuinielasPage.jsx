@@ -122,7 +122,16 @@ const QuinielasPage = () => {
                     </button>
                   ) : (
                     <button 
-                      onClick={() => handleUnirse(q.codigo_acceso)}
+                      onClick={() => {
+                        const code = window.prompt("Ingresa el código de acceso de la quiniela para unirte:");
+                        if (code) {
+                          if (code.toUpperCase() === q.codigo_acceso.toUpperCase()) {
+                            handleUnirse(q.codigo_acceso);
+                          } else {
+                            alert("El código ingresado es incorrecto.");
+                          }
+                        }
+                      }}
                       className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-sm transition-colors"
                     >
                       Unirse a esta Quiniela

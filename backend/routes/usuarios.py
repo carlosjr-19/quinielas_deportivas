@@ -81,7 +81,10 @@ def dashboard_usuario(usuario_id: int, db: Session = Depends(get_db)):
     creadas = db.query(ModeloQuiniela).filter(ModeloQuiniela.creador_id == usuario_id).all()
     
     # Unidas
-    uniones = db.query(ModeloUsuarioQuiniela).filter(ModeloUsuarioQuiniela.usuario_id == usuario_id).all()
+    uniones = db.query(ModeloUsuarioQuiniela).filter(
+        ModeloUsuarioQuiniela.usuario_id == usuario_id,
+        ModeloUsuarioQuiniela.activo == True
+    ).all()
     quinielas_unidas = [u.quiniela for u in uniones]
     
     return {

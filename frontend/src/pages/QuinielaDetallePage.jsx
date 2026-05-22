@@ -39,7 +39,8 @@ const QuinielaDetallePage = () => {
       setPartidos(dataP);
 
       // 4. Feed de pronósticos
-      const resF = await fetch(`/api/pronosticos/quiniela/${codigo}`);
+      const mi_reg = dataM.find(m => m.usuario_id === usuarioLocal.id);
+      const resF = await fetch(`/api/feed/quiniela/${codigo}?usuario_quiniela_id=${mi_reg?.usuario_quiniela_id || 0}`);
       const dataF = await resF.json();
       setFeed(dataF);
 
@@ -56,6 +57,41 @@ const QuinielaDetallePage = () => {
 
   const miRegistro = miembros.find(m => m.usuario_id === usuarioLocal.id);
   const isAdmin = miRegistro?.rol === 'admin';
+  const isSocio = miRegistro?.rol === 'socio';
+  const hasAdminAccess = isAdmin || isSocio;
+  // Añadimos comprobación si fue expulsado/abandonó para mostrar mensaje si no existe o no está activo, aunque el dashboard lo oculte, si entra directo por URL.
+  // Pero el request dice que el miembro mantiene sus puntos. En esta vista lo seguiremos viendo si no redirigimos.
+  
+  const salirDeQuiniela = async () => {
+    if (!window.confirm("¿Seguro que deseas salir de esta quiniela? Perderás acceso al grupo, pero tus pronósticos quedarán registrados.")) return;
+    try {
+      const res = await fetch(`/api/quinielas/${codigo}/salir?usuario_id=${usuarioLocal.id}`, { method: 'PUT' });
+      if (res.ok) {
+        navigate('/dashboard');
+      } else {
+        const d = await res.json();
+        alert(d.detail || "Error al salir");
+      }
+    } catch(e) {
+      alert("Error de conexión");
+    }
+  };
+
+  const eliminarQuinielaDefinitivamente = async () => {
+    if (!window.confirm("🔴 ADVERTENCIA: ¿Estás completamente seguro de ELIMINAR esta quiniela? Todos los pronósticos, miembros y el muro serán borrados permanentemente. Esta acción no se puede deshacer.")) return;
+    try {
+      const res = await fetch(`/api/quinielas/${codigo}?usuario_id=${usuarioLocal.id}`, { method: 'DELETE' });
+      if (res.ok) {
+        alert("Quiniela eliminada correctamente.");
+        navigate('/dashboard');
+      } else {
+        const d = await res.json();
+        alert(d.detail || "Error al eliminar la quiniela");
+      }
+    } catch(e) {
+      alert("Error de conexión");
+    }
+  };
 
   return (
     <div className="min-h-screen pt-20 bg-gray-100 pb-10">
@@ -70,7 +106,7 @@ const QuinielaDetallePage = () => {
             </div>
             <div className="mt-4 md:mt-0 text-right">
               <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 rounded-full uppercase font-semibold tracking-wide">
-                {miRegistro ? (isAdmin ? 'Administrador' : 'Miembro') : 'Invitado'}
+                {miRegistro ? (isAdmin ? 'Administrador' : isSocio ? 'Socio' : 'Miembro') : 'Invitado'}
               </span>
               <p className="text-sm text-gray-500 mt-2">{miembros.length} Participantes</p>
             </div>
@@ -78,37 +114,69 @@ const QuinielaDetallePage = () => {
         </div>
 
         {/* Navigation Tabs */}
-        <div className="flex overflow-x-auto bg-white rounded-lg shadow-sm mb-6">
-          {['pronosticos', 'posiciones', 'feed', 'reglas'].concat(isAdmin ? ['admin'] : []).map(tab => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`flex-1 py-4 px-6 text-sm font-medium capitalize transition-colors ${
-                activeTab === tab 
-                  ? 'border-b-2 border-[#1c803c] text-[#1c803c]' 
-                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
-              }`}
+        <div className="mb-6 border-b flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2">
+          <div className="flex overflow-x-auto hide-scrollbar space-x-6">
+            <button 
+              className={`pb-2 whitespace-nowrap ${activeTab === 'pronosticos' ? 'border-b-2 border-[#1c803c] font-bold text-[#1c803c]' : 'text-gray-500'}`}
+              onClick={() => setActiveTab('pronosticos')}
             >
-              {tab === 'admin' ? 'Administración' : tab}
+              Mis Pronósticos
             </button>
-          ))}
+            <button 
+              className={`pb-2 whitespace-nowrap ${activeTab === 'posiciones' ? 'border-b-2 border-[#1c803c] font-bold text-[#1c803c]' : 'text-gray-500'}`}
+              onClick={() => setActiveTab('posiciones')}
+            >
+              Posiciones
+            </button>
+            <button 
+              className={`pb-2 whitespace-nowrap ${activeTab === 'feed' ? 'border-b-2 border-[#1c803c] font-bold text-[#1c803c]' : 'text-gray-500'}`}
+              onClick={() => setActiveTab('feed')}
+            >
+              Muro Social
+            </button>
+            <button 
+              className={`pb-2 whitespace-nowrap ${activeTab === 'predicciones' ? 'border-b-2 border-[#1c803c] font-bold text-[#1c803c]' : 'text-gray-500'}`}
+              onClick={() => setActiveTab('predicciones')}
+            >
+              Predicciones
+            </button>
+            <button 
+              className={`pb-2 whitespace-nowrap ${activeTab === 'reglas' ? 'border-b-2 border-[#1c803c] font-bold text-[#1c803c]' : 'text-gray-500'}`}
+              onClick={() => setActiveTab('reglas')}
+            >
+              Reglas
+            </button>
+            {hasAdminAccess && (
+              <button 
+                className={`pb-2 whitespace-nowrap ${activeTab === 'admin' ? 'border-b-2 border-purple-600 font-bold text-purple-600' : 'text-gray-500'}`}
+                onClick={() => setActiveTab('admin')}
+              >
+                Administración
+              </button>
+            )}
+          </div>
+          {!isAdmin && (
+            <button onClick={salirDeQuiniela} className="text-red-500 hover:text-red-700 text-sm font-semibold whitespace-nowrap px-4 border border-red-200 rounded-md py-1">
+              Salir de la Quiniela
+            </button>
+          )}
         </div>
 
-        {/* Tab Content */}
+      <div className="max-w-4xl mx-auto pb-12">
         <div className="bg-white rounded-lg shadow-md p-6">
           {activeTab === 'pronosticos' && <TabPronosticos partidos={partidos} miRegistro={miRegistro} recargar={cargarDatos} />}
-          {activeTab === 'posiciones' && <TabPosiciones miembros={miembros} />}
-          {activeTab === 'feed' && <TabFeed feed={feed} miRegistro={miRegistro} recargar={cargarDatos} />}
+          {activeTab === 'posiciones' && <TabPosiciones miembros={miembros} quiniela={quiniela} />}
+          {activeTab === 'feed' && <TabFeed feed={feed} miRegistro={miRegistro} recargar={cargarDatos} quiniela={quiniela} />}
+          {activeTab === 'predicciones' && <TabPredicciones quiniela={quiniela} miRegistro={miRegistro} recargar={cargarDatos} />}
           {activeTab === 'reglas' && <TabReglas reglas={quiniela.reglas} />}
-          {activeTab === 'admin' && isAdmin && <TabAdmin quiniela={quiniela} miembros={miembros} reload={cargarDatos} />}
+          {activeTab === 'admin' && hasAdminAccess && <TabAdmin quiniela={quiniela} miembros={miembros} reload={cargarDatos} miRegistro={miRegistro} eliminarQuiniela={eliminarQuinielaDefinitivamente} />}
         </div>
+      </div>
 
       </div>
     </div>
   );
 };
-
-// --- Subcomponentes para cada Tab ---
 
 const ModalAñadirPronostico = ({ partidos, miRegistro, onClose, onGuardado, misPronosticosActuales }) => {
   const [predicciones, setPredicciones] = useState({});
@@ -218,7 +286,6 @@ const ModalAñadirPronostico = ({ partidos, miRegistro, onClose, onGuardado, mis
     guardarPronosticoLibre(manualInput);
   };
 
-  // Agrupar todos los partidos por fecha para renderizar, ordenándolos primero
   const partidosOrdenados = [...partidos].sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
   const partidosAgrupados = partidosOrdenados.reduce((acc, p) => {
     const d = new Date(p.fecha).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
@@ -230,7 +297,6 @@ const ModalAñadirPronostico = ({ partidos, miRegistro, onClose, onGuardado, mis
   return (
     <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
-        {/* Modal Header */}
         <div className="flex justify-between items-center p-5 border-b bg-gray-50">
           <h2 className="text-xl font-bold text-gray-800">Próximos Partidos</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-700 hover:bg-gray-200 p-2 rounded-full transition-colors">
@@ -238,10 +304,7 @@ const ModalAñadirPronostico = ({ partidos, miRegistro, onClose, onGuardado, mis
           </button>
         </div>
 
-        {/* Modal Body */}
         <div className="p-6 overflow-y-auto flex-1 bg-gray-50">
-          
-          {/* Entrada Manual */}
           <div className="mb-6 bg-white p-4 rounded-lg shadow-sm border border-gray-200">
             <h3 className="text-sm font-bold text-gray-700 mb-2">Entrada Rápida de Texto</h3>
             <div className="flex flex-col sm:flex-row gap-2">
@@ -489,10 +552,34 @@ const TabPronosticos = ({ partidos, miRegistro, recargar }) => {
   );
 };
 
-const TabPosiciones = ({ miembros }) => {
+const TabPosiciones = ({ miembros, quiniela }) => {
+  const compartirWhatsApp = () => {
+    if (!miembros || miembros.length === 0) return;
+    
+    let texto = `🏆 Tabla de Posiciones - ${quiniela.nombre} 🏆\n\n`;
+    miembros.forEach((m, idx) => {
+      let prefijo = idx === 0 ? '👑 ' : `${idx + 1}. `;
+      texto += `${prefijo}${m.nombre} - ${m.puntos_totales} pts\n`;
+    });
+    
+    texto += `\nÚnete con el código: ${quiniela.codigo_acceso}`;
+    
+    const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(texto)}`;
+    window.open(url, '_blank');
+  };
+
   return (
     <div>
-      <h2 className="text-xl font-bold mb-4">Tabla de Posiciones</h2>
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-xl font-bold">Tabla de Posiciones</h2>
+        <button 
+          onClick={compartirWhatsApp}
+          className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg shadow-sm transition-colors flex items-center gap-2 text-sm"
+        >
+          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
+          Compartir
+        </button>
+      </div>
       <div className="overflow-x-auto">
         <table className="min-w-full bg-white border border-gray-200">
           <thead className="bg-[#1c803c] text-white">
@@ -507,7 +594,10 @@ const TabPosiciones = ({ miembros }) => {
               <tr key={m.usuario_quiniela_id} className="hover:bg-gray-50">
                 <td className="py-3 px-4 font-bold text-gray-500">{idx + 1}</td>
                 <td className="py-3 px-4 font-semibold">
-                  {m.nombre} {m.rol === 'admin' && <span className="ml-2 text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">Admin</span>}
+                  {idx === 0 && <span className="mr-1" title="Primer lugar">👑</span>}
+                  {m.nombre} 
+                  {m.rol === 'admin' && <span className="ml-2 text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">Admin</span>}
+                  {m.rol === 'socio' && <span className="ml-2 text-xs bg-purple-100 text-purple-800 px-2 py-0.5 rounded-full">Socio</span>}
                 </td>
                 <td className="py-3 px-4 text-right font-bold text-[#1c803c]">{m.puntos_totales}</td>
               </tr>
@@ -524,8 +614,170 @@ const TabPosiciones = ({ miembros }) => {
   );
 };
 
-const TabFeed = ({ feed, miRegistro, recargar }) => {
+const TabFeed = ({ feed, miRegistro, recargar, quiniela }) => {
+  const [mensaje, setMensaje] = useState("");
+  const [publicando, setPublicando] = useState(false);
+
+  const publicarMensaje = async () => {
+    if (!mensaje.trim()) return;
+    if (mensaje.length > 100) return alert("El mensaje no puede exceder los 100 caracteres");
+    
+    setPublicando(true);
+    try {
+      const res = await fetch('/api/feed/mensaje', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contenido: mensaje,
+          quiniela_codigo: quiniela.codigo_acceso,
+          usuario_quiniela_id: miRegistro.usuario_quiniela_id
+        })
+      });
+      if (res.ok) {
+        setMensaje("");
+        recargar();
+      }
+    } catch (e) {
+      alert("Error al publicar mensaje");
+    } finally {
+      setPublicando(false);
+    }
+  };
+
+  const toggleReaccion = async (feedItemId, emoji) => {
+    try {
+      const res = await fetch(`/api/feed/${feedItemId}/reaccionar?usuario_quiniela_id=${miRegistro.usuario_quiniela_id}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ emoji })
+      });
+      if (res.ok) recargar();
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  return (
+    <div>
+      <h2 className="text-xl font-bold mb-4">Muro Social</h2>
+      
+      <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 mb-6 flex flex-col gap-3">
+        <textarea 
+          maxLength="100"
+          rows="2"
+          placeholder="¿Qué estás pensando? (Máx 100 caracteres)"
+          className="w-full border border-gray-300 rounded-lg p-3 resize-none focus:ring-2 focus:ring-[#1c803c] focus:outline-none text-gray-700"
+          value={mensaje}
+          onChange={(e) => setMensaje(e.target.value)}
+        />
+        <div className="flex justify-between items-center">
+          <span className={`text-xs font-semibold ${mensaje.length === 100 ? 'text-red-500' : 'text-gray-400'}`}>
+            {mensaje.length} / 100
+          </span>
+          <button 
+            onClick={publicarMensaje}
+            disabled={publicando || !mensaje.trim()}
+            className="bg-[#1c803c] hover:bg-[#14602a] text-white px-5 py-2 rounded-lg font-bold text-sm transition-colors disabled:opacity-50"
+          >
+            Publicar
+          </button>
+        </div>
+      </div>
+
+      <div className="space-y-6">
+        {feed.map(f => (
+          <div key={f.id} className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+            <div className="px-4 py-3 bg-gray-50 flex items-center gap-3 border-b border-gray-100">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold shadow-sm">
+                {f.usuario ? f.usuario.charAt(0).toUpperCase() : 'S'}
+              </div>
+              <div>
+                <span className="font-bold text-gray-800 block leading-tight">{f.usuario || 'Sistema'}</span>
+                <span className="text-xs text-gray-500 font-medium">
+                  {new Date(f.fecha).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', hour: '2-digit', minute:'2-digit' })}
+                </span>
+              </div>
+            </div>
+
+            <div className="p-4">
+              {f.tipo === 'MENSAJE' && (
+                <p className="text-gray-800 text-lg leading-relaxed">{f.contenido}</p>
+              )}
+              
+              {f.tipo === 'EVENTO' && (
+                <p className="text-gray-600 font-medium italic">ℹ️ {f.contenido}</p>
+              )}
+              
+              {f.tipo === 'PRONOSTICO' && (
+                <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 bg-gray-50 p-4 rounded-lg border border-gray-200">
+                  <div className="flex-1 flex gap-4 items-center">
+                    <span className="text-gray-600 font-medium">{f.partido}</span>
+                    <span className="font-black text-xl text-black px-4 py-1 bg-white rounded shadow-sm border border-gray-200">{f.pronostico}</span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="px-4 py-3 bg-white border-t border-gray-100 flex gap-2 overflow-x-auto">
+              {f.reacciones?.map(r => (
+                <button
+                  key={r.emoji}
+                  onClick={() => toggleReaccion(f.id, r.emoji)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold transition-colors border ${r.user_reacted ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'}`}
+                >
+                  <span className="text-base">{r.emoji}</span>
+                  {r.count > 0 && <span>{r.count}</span>}
+                </button>
+              ))}
+            </div>
+          </div>
+        ))}
+        {feed.length === 0 && (
+          <div className="text-center py-12 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
+            <span className="text-4xl mb-4 block">🦗</span>
+            <p className="text-gray-500 font-medium">El muro está vacío. ¡Sé el primero en publicar algo!</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+const TabReglas = ({ reglas }) => {
+  return (
+    <div>
+      <h2 className="text-xl font-bold mb-4">Reglas de la Quiniela</h2>
+      <div className="bg-gray-50 p-4 rounded-lg whitespace-pre-wrap text-gray-700">
+        {reglas || "El administrador no ha especificado reglas adicionales. Se aplican las reglas estándar (3 puntos por acertar marcador exacto, 1 punto por atinar al ganador o empate)."}
+      </div>
+    </div>
+  );
+};
+
+const TabPredicciones = ({ quiniela, miRegistro, recargar }) => {
+  const [predicciones, setPredicciones] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchPredicciones = async () => {
+    try {
+      const res = await fetch(`/api/pronosticos/quiniela/${quiniela.codigo_acceso}/todas`);
+      if (res.ok) {
+        const data = await res.json();
+        setPredicciones(data);
+      }
+    } catch(e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchPredicciones();
+  }, [quiniela.codigo_acceso]);
+
   const asignarPuntos = async (pronosticoId, puntos) => {
+    if (!pronosticoId) return;
     if (puntos < 0 || puntos > 5) {
       alert("Los puntos deben estar entre 0 y 5");
       return;
@@ -538,6 +790,7 @@ const TabFeed = ({ feed, miRegistro, recargar }) => {
       });
       if (res.ok) {
         recargar();
+        fetchPredicciones(); // Refrescar vista local
       } else {
         alert("Error al asignar puntos");
       }
@@ -546,93 +799,99 @@ const TabFeed = ({ feed, miRegistro, recargar }) => {
     }
   };
 
+  const eliminarPronostico = async (pronosticoId) => {
+    if (!pronosticoId) return;
+    if (!window.confirm("¿Seguro que quieres eliminar este pronóstico?")) return;
+    try {
+      const res = await fetch(`/api/pronosticos/${pronosticoId}`, { method: 'DELETE' });
+      if (res.ok) {
+        recargar();
+        fetchPredicciones();
+      } else {
+        alert("Error al eliminar");
+      }
+    } catch (e) { console.error(e); }
+  };
+
+  if (loading) return <div className="text-gray-500 py-8 text-center font-medium">Cargando predicciones...</div>;
+
+  const agrupadas = {};
+  predicciones.forEach(p => {
+    const d = new Date(p.fecha);
+    const dateStr = d.toLocaleDateString('es-ES', { day: 'numeric', month: 'long' });
+    const timeStr = d.toLocaleTimeString('es-ES', { hour: 'numeric', minute: '2-digit' });
+    const key = `${dateStr} ${timeStr} - ${p.usuario}`;
+    if (!agrupadas[key]) agrupadas[key] = [];
+    agrupadas[key].push(p);
+  });
+
   return (
     <div>
-      <h2 className="text-xl font-bold mb-4">Pronósticos Actuales de la Comunidad</h2>
-      <div className="space-y-4">
-        {feed.map(f => (
-          <div key={f.id} className="p-4 border rounded-lg bg-gray-50 flex flex-col md:flex-row justify-between md:items-center gap-4">
-            <div className="flex-1">
-              <span className="font-bold text-gray-800">{f.usuario}</span>
-              <span className="text-xs text-gray-500 ml-2 block sm:inline">Publicado el {new Date(f.fecha).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', hour: '2-digit', minute:'2-digit' })} hrs</span>
-            </div>
-            
-            <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
-              <div className="bg-white px-4 py-2 rounded shadow-sm border text-sm flex gap-4 w-full sm:w-auto">
-                <span className="text-gray-600 truncate max-w-[150px] sm:max-w-[200px]">{f.partido}</span>
-                <span className="font-bold text-black whitespace-nowrap">{f.pronostico}</span>
-              </div>
-              
-              <div className="flex items-center gap-2 w-full sm:w-auto">
-                <span className="text-xs font-bold bg-green-100 text-green-800 px-2 py-1 rounded-full whitespace-nowrap shrink-0">
-                  {f.puntos_obtenidos !== null && f.puntos_obtenidos !== undefined ? `${f.puntos_obtenidos} pts` : '0 pts'}
-                </span>
-                
-                {miRegistro?.rol === 'admin' && (
-                  <div className="flex items-center gap-2 shrink-0">
-                    <div className="flex items-center gap-1 bg-white p-1 rounded border shadow-sm">
-                      <input 
-                        type="number" 
-                        min="0" max="5" 
-                        className="w-12 text-center border rounded text-sm px-1 py-1 focus:ring-blue-500 focus:border-blue-500"
-                        placeholder="0-5"
-                        id={`puntos-${f.id}`}
-                        defaultValue={f.puntos_obtenidos || 0}
-                      />
-                      <button 
-                        onClick={() => asignarPuntos(f.id, document.getElementById(`puntos-${f.id}`).value)}
-                        className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-2 py-1.5 rounded font-medium transition-colors"
-                      >
-                        OK
-                      </button>
-                    </div>
-                    
-                    <button 
-                      onClick={async () => {
-                        if (!window.confirm("¿Seguro que quieres eliminar este pronóstico del feed?")) return;
-                        try {
-                          const res = await fetch(`/api/pronosticos/${f.id}`, { method: 'DELETE' });
-                          if (res.ok) recargar();
-                          else alert("Error al eliminar");
-                        } catch (e) { console.error(e); }
-                      }}
-                      className="bg-red-50 hover:bg-red-100 text-red-600 p-1.5 rounded border border-red-200 transition-colors"
-                      title="Eliminar pronóstico"
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                    </button>
+      <h2 className="text-xl font-bold mb-6">Todas las Predicciones</h2>
+      <div className="space-y-6">
+        {Object.keys(agrupadas).map(key => (
+          <div key={key} className="bg-white border rounded-xl p-5 shadow-sm">
+            <h3 className="font-bold text-gray-800 border-b pb-3 mb-4 flex items-center gap-2">
+              <span className="text-xl">📅</span> {key}
+            </h3>
+            <div className="space-y-3 pl-2">
+              {agrupadas[key].map(p => (
+                <div key={p.id} className="flex flex-col md:flex-row justify-between md:items-center gap-4 bg-gray-50 px-4 py-3 rounded-lg border border-gray-100">
+                  <div className="flex gap-4 items-center flex-1">
+                    <span className="text-gray-600 font-medium min-w-[120px] md:min-w-[150px]">{p.partido}</span>
+                    <span className="font-black text-lg bg-white px-3 py-0.5 rounded shadow-sm border border-gray-200">{p.pronostico}</span>
                   </div>
-                )}
-              </div>
+                  
+                  <div className="flex items-center gap-3 shrink-0">
+                    <span className="text-sm font-bold bg-green-100 text-green-800 px-3 py-1.5 rounded-full whitespace-nowrap shadow-sm border border-green-200">
+                      {p.puntos_obtenidos !== null && p.puntos_obtenidos !== undefined ? `${p.puntos_obtenidos} pts` : '0 pts'}
+                    </span>
+                    
+                    {(miRegistro?.rol === 'admin' || miRegistro?.rol === 'socio') && (
+                      <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1 bg-white p-1 rounded-lg border shadow-sm">
+                          <input 
+                            type="number" 
+                            min="0" max="5" 
+                            className="w-12 text-center border rounded-md text-sm px-1 py-1 focus:ring-blue-500 focus:border-blue-500"
+                            placeholder="0-5"
+                            id={`puntos-pred-${p.id}`}
+                            defaultValue={p.puntos_obtenidos || 0}
+                          />
+                          <button 
+                            onClick={() => asignarPuntos(p.id, document.getElementById(`puntos-pred-${p.id}`).value)}
+                            className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-2 py-1.5 rounded-md font-bold transition-colors"
+                          >
+                            OK
+                          </button>
+                        </div>
+                        <button 
+                          onClick={() => eliminarPronostico(p.id)}
+                          className="bg-red-50 hover:bg-red-100 text-red-600 p-2 rounded-lg border border-red-200 transition-colors"
+                          title="Eliminar pronóstico"
+                        >
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         ))}
-        {feed.length === 0 && (
-          <p className="text-gray-500 text-center py-8">Nadie ha hecho pronósticos todavía.</p>
+        {Object.keys(agrupadas).length === 0 && (
+          <div className="text-center py-12 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
+            <span className="text-4xl mb-4 block">⚽</span>
+            <p className="text-gray-500 font-medium">No hay predicciones todavía.</p>
+          </div>
         )}
       </div>
     </div>
   );
 };
 
-const TabReglas = ({ reglas }) => {
-  return (
-    <div>
-      <h2 className="text-xl font-bold mb-4">Reglas del Torneo</h2>
-      {reglas ? (
-        <div className="bg-gray-50 p-6 rounded-lg border-l-4 border-[#1c803c]">
-          <p className="text-gray-700 whitespace-pre-wrap leading-relaxed">{reglas}</p>
-        </div>
-      ) : (
-        <div className="text-center py-8 text-gray-500">
-          El administrador no ha establecido reglas adicionales para esta quiniela.
-        </div>
-      )}
-    </div>
-  );
-};
-
-const TabAdmin = ({ quiniela, miembros, reload }) => {
+const TabAdmin = ({ quiniela, miembros, reload, miRegistro, eliminarQuiniela }) => {
   const [nombre, setNombre] = useState(quiniela.nombre);
   const [reglas, setReglas] = useState(quiniela.reglas || '');
   const [mensaje, setMensaje] = useState('');
@@ -659,6 +918,19 @@ const TabAdmin = ({ quiniela, miembros, reload }) => {
       const res = await fetch(`/api/quinielas/${quiniela.codigo_acceso}/miembros/${id}`, { method: 'DELETE' });
       if (res.ok) reload();
       else alert("Error al expulsar");
+    } catch (e) {}
+  };
+
+  const cambiarRol = async (id, nuevoRol) => {
+    if (!window.confirm(`¿Seguro que deseas cambiar el rol a ${nuevoRol}?`)) return;
+    try {
+      const res = await fetch(`/api/quinielas/${quiniela.codigo_acceso}/miembros/${id}/rol`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rol: nuevoRol })
+      });
+      if (res.ok) reload();
+      else alert("Error al cambiar rol");
     } catch (e) {}
   };
 
@@ -698,6 +970,7 @@ const TabAdmin = ({ quiniela, miembros, reload }) => {
   return (
     <div className="space-y-8">
       {/* Edición Básica */}
+      {miRegistro?.rol === 'admin' && (
       <div>
         <h2 className="text-xl font-bold mb-4 border-b pb-2">Configuración</h2>
         {mensaje && <p className="text-blue-600 mb-4 font-semibold p-3 bg-blue-50 rounded-lg">{mensaje}</p>}
@@ -731,6 +1004,7 @@ const TabAdmin = ({ quiniela, miembros, reload }) => {
           </div>
         </div>
       </div>
+      )}
 
       {/* Gestión de Participantes */}
       <div>
@@ -758,7 +1032,15 @@ const TabAdmin = ({ quiniela, miembros, reload }) => {
                     >
                       Puntos
                     </button>
-                    {m.rol !== 'admin' && (
+                    {miRegistro?.rol === 'admin' && m.rol !== 'admin' && (
+                      <button 
+                        onClick={() => cambiarRol(m.usuario_quiniela_id, m.rol === 'socio' ? 'usuario' : 'socio')}
+                        className="text-purple-600 hover:text-purple-800 text-sm"
+                      >
+                        {m.rol === 'socio' ? 'Quitar Socio' : 'Hacer Socio'}
+                      </button>
+                    )}
+                    {m.rol !== 'admin' && (miRegistro?.rol === 'admin' || (miRegistro?.rol === 'socio' && m.rol !== 'socio')) && (
                       <button 
                         onClick={() => expulsar(m.usuario_quiniela_id)}
                         className="text-red-600 hover:text-red-800 text-sm"
@@ -773,6 +1055,22 @@ const TabAdmin = ({ quiniela, miembros, reload }) => {
           </table>
         </div>
       </div>
+
+      {/* Eliminar Quiniela (Solo Admin) */}
+      {miRegistro?.rol === 'admin' && (
+        <div className="pt-8 border-t border-red-100 mt-8">
+          <h2 className="text-xl font-bold mb-4 text-red-600">Zona de Peligro</h2>
+          <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+            <p className="text-red-800 font-medium mb-4">Al eliminar esta quiniela, todos los datos (miembros, pronósticos, mensajes y puntajes) serán borrados permanentemente. Esta acción es irreversible.</p>
+            <button 
+              onClick={eliminarQuiniela}
+              className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg font-bold shadow transition-colors"
+            >
+              Eliminar Quiniela Definitivamente
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
