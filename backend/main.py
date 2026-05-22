@@ -23,10 +23,15 @@ try:
         except Exception:
             pass # Ya existe
             
-        # 2. Asegurar que exista el torneo WC-2026
+        # 2. Asegurar que existan los torneos
         torneo_existe = conn.execute(text("SELECT id FROM torneos WHERE id = 'WC-2026'")).fetchone()
         if not torneo_existe:
             conn.execute(text("INSERT INTO torneos (id, nombre) VALUES ('WC-2026', 'World Cup 2026')"))
+            conn.commit()
+            
+        torneo_libre_existe = conn.execute(text("SELECT id FROM torneos WHERE id = 'LIBRE'")).fetchone()
+        if not torneo_libre_existe:
+            conn.execute(text("INSERT INTO torneos (id, nombre) VALUES ('LIBRE', 'Quiniela Libre')"))
             conn.commit()
 except Exception as e:
     pass

@@ -85,6 +85,7 @@ const CrearQuinielaPage = () => {
                 className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none bg-white"
               >
                 <option value="WC-2026">Mundial 2026</option>
+                <option value="LIBRE">Quiniela Libre (Sin partidos predefinidos)</option>
               </select>
             </div>
             

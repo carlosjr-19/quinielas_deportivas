@@ -96,7 +96,7 @@ const QuinielaDetallePage = () => {
 
         {/* Tab Content */}
         <div className="bg-white rounded-lg shadow-md p-6">
-          {activeTab === 'pronosticos' && <TabPronosticos partidos={partidos} miRegistro={miRegistro} />}
+          {activeTab === 'pronosticos' && <TabPronosticos partidos={partidos} miRegistro={miRegistro} recargar={cargarDatos} />}
           {activeTab === 'posiciones' && <TabPosiciones miembros={miembros} />}
           {activeTab === 'feed' && <TabFeed feed={feed} miRegistro={miRegistro} recargar={cargarDatos} />}
           {activeTab === 'reglas' && <TabReglas reglas={quiniela.reglas} />}
@@ -244,7 +244,7 @@ const ModalAñadirPronostico = ({ partidos, miRegistro, onClose, onGuardado, mis
           {/* Entrada Manual */}
           <div className="mb-6 bg-white p-4 rounded-lg shadow-sm border border-gray-200">
             <h3 className="text-sm font-bold text-gray-700 mb-2">Entrada Rápida de Texto</h3>
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2">
               <input 
                 type="text"
                 placeholder="Ejemplo: Mexico 1 - 0 South Africa"
@@ -280,50 +280,54 @@ const ModalAñadirPronostico = ({ partidos, miRegistro, onClose, onGuardado, mis
                     {partidosAgrupados[fecha].map(p => {
                       const locked = isLocked(p.fecha);
                       return (
-                        <div key={p.id} className="p-4 flex flex-col md:flex-row items-center justify-between gap-4 hover:bg-gray-50 transition-colors">
-                          <div className="flex-1 text-center md:text-left text-sm text-gray-500 font-medium">
+                        <div key={p.id} className="p-4 flex flex-col items-center gap-3 hover:bg-gray-50 transition-colors">
+                          <div className="text-sm text-gray-500 font-medium text-center">
                             {new Date(p.fecha).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} hrs
                           </div>
                           
-                          <div className="flex-[2] flex items-center justify-center gap-4 w-full md:w-auto">
-                            <div className="text-right font-bold text-gray-800 flex-1 truncate flex items-center justify-end gap-2">
-                              {p.equipo_local}
+                          <div className="flex items-center justify-center gap-4 w-full">
+                            <div className="flex-1 flex justify-end items-center gap-3 min-w-[40px]">
+                              <span className="hidden sm:block font-bold text-gray-800 truncate text-right">{p.equipo_local}</span>
                               {getTeamFlagUrl(p.equipo_local) ? (
-                                <img src={getTeamFlagUrl(p.equipo_local)} alt={p.equipo_local} className="w-6 h-auto shadow-sm rounded-sm" />
+                                <img src={getTeamFlagUrl(p.equipo_local)} alt={p.equipo_local} className="w-8 h-auto shadow-sm rounded-sm shrink-0" />
                               ) : (
-                                <span className="text-lg">🏳️</span>
+                                <span className="text-2xl shrink-0">🏳️</span>
                               )}
                             </div>
-                            <input 
-                              type="number" 
-                              min="0"
-                              disabled={locked}
-                              className={`w-14 h-10 text-center border rounded-md text-lg font-bold outline-none transition-all ${locked ? 'bg-gray-100 text-gray-500 border-gray-200 cursor-not-allowed' : 'bg-white focus:ring-2 focus:ring-[#1c803c] border-gray-300'}`}
-                              value={predicciones[p.id]?.local ?? ''}
-                              onChange={(e) => handleScoreChange(p.id, true, e.target.value)}
-                            />
-                            <span className="text-gray-400 font-bold">-</span>
-                            <input 
-                              type="number" 
-                              min="0"
-                              disabled={locked}
-                              className={`w-14 h-10 text-center border rounded-md text-lg font-bold outline-none transition-all ${locked ? 'bg-gray-100 text-gray-500 border-gray-200 cursor-not-allowed' : 'bg-white focus:ring-2 focus:ring-[#1c803c] border-gray-300'}`}
-                              value={predicciones[p.id]?.visitante ?? ''}
-                              onChange={(e) => handleScoreChange(p.id, false, e.target.value)}
-                            />
-                            <div className="text-left font-bold text-gray-800 flex-1 truncate flex items-center gap-2">
+                            
+                            <div className="flex items-center gap-3 shrink-0">
+                              <input 
+                                type="number" 
+                                min="0"
+                                disabled={locked}
+                                className={`w-16 h-12 text-center border rounded-lg text-xl font-bold outline-none transition-all ${locked ? 'bg-gray-100 text-gray-500 border-gray-200 cursor-not-allowed' : 'bg-white focus:ring-2 focus:ring-[#1c803c] border-gray-300'}`}
+                                value={predicciones[p.id]?.local ?? ''}
+                                onChange={(e) => handleScoreChange(p.id, true, e.target.value)}
+                              />
+                              <span className="text-gray-400 font-bold">-</span>
+                              <input 
+                                type="number" 
+                                min="0"
+                                disabled={locked}
+                                className={`w-16 h-12 text-center border rounded-lg text-xl font-bold outline-none transition-all ${locked ? 'bg-gray-100 text-gray-500 border-gray-200 cursor-not-allowed' : 'bg-white focus:ring-2 focus:ring-[#1c803c] border-gray-300'}`}
+                                value={predicciones[p.id]?.visitante ?? ''}
+                                onChange={(e) => handleScoreChange(p.id, false, e.target.value)}
+                              />
+                            </div>
+
+                            <div className="flex-1 flex justify-start items-center gap-3 min-w-[40px]">
                               {getTeamFlagUrl(p.equipo_visitante) ? (
-                                <img src={getTeamFlagUrl(p.equipo_visitante)} alt={p.equipo_visitante} className="w-6 h-auto shadow-sm rounded-sm" />
+                                <img src={getTeamFlagUrl(p.equipo_visitante)} alt={p.equipo_visitante} className="w-8 h-auto shadow-sm rounded-sm shrink-0" />
                               ) : (
-                                <span className="text-lg">🏳️</span>
+                                <span className="text-2xl shrink-0">🏳️</span>
                               )}
-                              {p.equipo_visitante}
+                              <span className="hidden sm:block font-bold text-gray-800 truncate text-left">{p.equipo_visitante}</span>
                             </div>
                           </div>
                           
-                          <div className="flex-1 text-center md:text-right flex flex-col items-end justify-center">
+                          <div className="w-[140px] mt-2">
                             {locked ? (
-                              <span className="text-xs font-bold text-red-600 bg-red-50 px-3 py-1.5 rounded-md border border-red-100 uppercase tracking-wide flex items-center gap-1">
+                              <span className="text-xs font-bold text-red-600 bg-red-50 px-3 py-2 w-full rounded-md border border-red-100 uppercase tracking-wide flex items-center justify-center gap-1">
                                 <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" /></svg>
                                 Bloqueado
                               </span>
@@ -331,7 +335,7 @@ const ModalAñadirPronostico = ({ partidos, miRegistro, onClose, onGuardado, mis
                               <button 
                                 onClick={() => guardarPronostico(p.id)}
                                 disabled={guardando}
-                                className="bg-[#1c803c] hover:bg-[#14602a] text-white px-5 py-2 rounded-md text-sm font-semibold transition-colors shadow-sm disabled:opacity-70"
+                                className="w-full bg-[#1c803c] hover:bg-[#14602a] text-white px-5 py-2 rounded-md text-sm font-semibold transition-colors shadow-sm disabled:opacity-70"
                               >
                                 Guardar
                               </button>
@@ -346,8 +350,13 @@ const ModalAñadirPronostico = ({ partidos, miRegistro, onClose, onGuardado, mis
             </div>
           ) : (
             <div className="text-center py-10 bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg mb-4">
-              <svg className="w-12 h-12 text-gray-400 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-              <p className="text-gray-600 font-medium text-lg">No hay partidos disponibles.</p>
+              <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm border border-gray-200">
+                <svg className="w-8 h-8 text-[#1c803c]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+              </div>
+              <p className="text-gray-800 font-bold text-lg mb-1">Modo Quiniela Libre</p>
+              <p className="text-gray-500 font-medium text-sm max-w-sm mx-auto">
+                No hay partidos programados. Utiliza la <strong className="text-gray-700">Entrada Rápida de Texto</strong> de arriba para enviar tus pronósticos libremente.
+              </p>
             </div>
           )}
         </div>
@@ -356,7 +365,7 @@ const ModalAñadirPronostico = ({ partidos, miRegistro, onClose, onGuardado, mis
   );
 };
 
-const TabPronosticos = ({ partidos, miRegistro }) => {
+const TabPronosticos = ({ partidos, miRegistro, recargar }) => {
   const [misPronosticos, setMisPronosticos] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -455,7 +464,7 @@ const TabPronosticos = ({ partidos, miRegistro }) => {
            partidos={partidos} 
            miRegistro={miRegistro} 
            onClose={() => setIsModalOpen(false)} 
-           onGuardado={cargarMisPronosticos} 
+           onGuardado={() => { cargarMisPronosticos(); recargar(); }} 
            misPronosticosActuales={misPronosticos}
         />
       )}
@@ -675,14 +684,16 @@ const TabAdmin = ({ quiniela, miembros, reload }) => {
               onChange={e => setReglas(e.target.value)} 
             />
           </div>
-          <div className="flex gap-4 pt-2">
+          <div className="flex flex-col sm:flex-row gap-4 pt-2">
             <button onClick={guardarConfig} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-semibold transition-colors">Guardar Cambios</button>
-            <button onClick={sincronizarMundial} className="bg-[#1c803c] hover:bg-[#14602a] text-white px-4 py-2 rounded font-semibold transition-colors">
-              <span className="flex items-center gap-2">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-                Sincronizar Partidos
-              </span>
-            </button>
+            {quiniela.torneo_id !== 'LIBRE' && (
+              <button onClick={sincronizarMundial} className="bg-[#1c803c] hover:bg-[#14602a] text-white px-4 py-2 rounded font-semibold transition-colors">
+                <span className="flex items-center gap-2">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                  Sincronizar Partidos
+                </span>
+              </button>
+            )}
           </div>
         </div>
       </div>
