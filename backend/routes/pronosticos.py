@@ -178,3 +178,26 @@ def actualizar_puntos(pronostico_id: int, puntos_update: PronosticoPuntosUpdate,
         db.commit()
         
     return {"message": "Puntos actualizados correctamente", "puntos_totales": total_puntos}
+
+@router.delete("/{pronostico_id}")
+def eliminar_pronostico(pronostico_id: int, db: Session = Depends(get_db)):
+    pronostico = db.query(Pronostico).filter(Pronostico.id == pronostico_id).first()
+    if not pronostico:
+        raise HTTPException(status_code=404, detail="Pronóstico no encontrado")
+        
+    usuario_quiniela_id = pronostico.usuario_quiniela_id
+    db.delete(pronostico)
+    db.commit()
+    
+    # Recalcular total del usuario
+    total_puntos = db.query(func.sum(Pronostico.puntos_obtenidos))\
+        .filter(Pronostico.usuario_quiniela_id == usuario_quiniela_id)\
+        .scalar() or 0
+        
+    usuario_quiniela = db.query(UsuarioQuiniela).filter(UsuarioQuiniela.id == usuario_quiniela_id).first()
+    if usuario_quiniela:
+        usuario_quiniela.puntos_totales = total_puntos
+        db.commit()
+        
+    return {"message": "Pronóstico eliminado"}
+

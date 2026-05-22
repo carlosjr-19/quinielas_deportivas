@@ -402,8 +402,25 @@ const TabPronosticos = ({ partidos, miRegistro, recargar }) => {
       {misPronosticos.length > 0 ? (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {misPronosticos.map(p => (
-            <div key={p.id} className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow">
-              <div className="flex justify-between items-center mb-3">
+            <div key={p.id} className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow relative">
+              <button 
+                onClick={async () => {
+                  if (!window.confirm("¿Seguro que quieres eliminar este pronóstico?")) return;
+                  try {
+                    const res = await fetch(`/api/pronosticos/${p.id}`, { method: 'DELETE' });
+                    if (res.ok) {
+                      cargarMisPronosticos();
+                      recargar();
+                    } else alert("Error al eliminar");
+                  } catch (e) { console.error(e); }
+                }}
+                className="absolute top-2 right-2 text-red-500 hover:text-red-700 hover:bg-red-50 p-1.5 rounded-full transition-colors"
+                title="Eliminar pronóstico"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+              </button>
+              
+              <div className="flex justify-between items-center mb-3 pr-8">
                 <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
                   {new Date(p.fecha_partido).toLocaleDateString('es-ES', {day: '2-digit', month: 'short'})} · {new Date(p.fecha_partido).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}
                 </span>
@@ -552,20 +569,37 @@ const TabFeed = ({ feed, miRegistro, recargar }) => {
                 </span>
                 
                 {miRegistro?.rol === 'admin' && (
-                  <div className="flex items-center gap-1 bg-white p-1 rounded border shadow-sm shrink-0">
-                    <input 
-                      type="number" 
-                      min="0" max="5" 
-                      className="w-12 text-center border rounded text-sm px-1 py-1 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="0-5"
-                      id={`puntos-${f.id}`}
-                      defaultValue={f.puntos_obtenidos || 0}
-                    />
+                  <div className="flex items-center gap-2 shrink-0">
+                    <div className="flex items-center gap-1 bg-white p-1 rounded border shadow-sm">
+                      <input 
+                        type="number" 
+                        min="0" max="5" 
+                        className="w-12 text-center border rounded text-sm px-1 py-1 focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="0-5"
+                        id={`puntos-${f.id}`}
+                        defaultValue={f.puntos_obtenidos || 0}
+                      />
+                      <button 
+                        onClick={() => asignarPuntos(f.id, document.getElementById(`puntos-${f.id}`).value)}
+                        className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-2 py-1.5 rounded font-medium transition-colors"
+                      >
+                        OK
+                      </button>
+                    </div>
+                    
                     <button 
-                      onClick={() => asignarPuntos(f.id, document.getElementById(`puntos-${f.id}`).value)}
-                      className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-2 py-1.5 rounded font-medium transition-colors"
+                      onClick={async () => {
+                        if (!window.confirm("¿Seguro que quieres eliminar este pronóstico del feed?")) return;
+                        try {
+                          const res = await fetch(`/api/pronosticos/${f.id}`, { method: 'DELETE' });
+                          if (res.ok) recargar();
+                          else alert("Error al eliminar");
+                        } catch (e) { console.error(e); }
+                      }}
+                      className="bg-red-50 hover:bg-red-100 text-red-600 p-1.5 rounded border border-red-200 transition-colors"
+                      title="Eliminar pronóstico"
                     >
-                      OK
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                     </button>
                   </div>
                 )}
