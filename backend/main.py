@@ -13,13 +13,22 @@ from sqlalchemy import text
 
 models.Base.metadata.create_all(bind=engine)
 
-# Auto-migración para añadir texto_libre si no existe (útil para Railway u otros entornos)
+# Auto-migración para añadir texto_libre y el torneo inicial
 try:
     with engine.connect() as conn:
-        conn.execute(text("ALTER TABLE pronosticos ADD COLUMN texto_libre VARCHAR"))
-        conn.commit()
+        # 1. Asegurar columna texto_libre
+        try:
+            conn.execute(text("ALTER TABLE pronosticos ADD COLUMN texto_libre VARCHAR"))
+            conn.commit()
+        except Exception:
+            pass # Ya existe
+            
+        # 2. Asegurar que exista el torneo WC-2026
+        torneo_existe = conn.execute(text("SELECT id FROM torneos WHERE id = 'WC-2026'")).fetchone()
+        if not torneo_existe:
+            conn.execute(text("INSERT INTO torneos (id, nombre) VALUES ('WC-2026', 'World Cup 2026')"))
+            conn.commit()
 except Exception as e:
-    # Si la columna ya existe u otro error menor, ignoramos
     pass
 
 app = FastAPI(title="Quinielas API")

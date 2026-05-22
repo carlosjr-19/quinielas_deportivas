@@ -7,7 +7,7 @@ const CrearQuinielaPage = () => {
   const [usuario, setUsuario] = useState(null);
   const [formData, setFormData] = useState({
     nombre: '',
-    torneo_id: '1', // Suponiendo ID por defecto
+    torneo_id: 'WC-2026', // ID correcto del torneo
     reglas: ''
   });
   const [error, setError] = useState('');
@@ -84,7 +84,7 @@ const CrearQuinielaPage = () => {
                 onChange={handleChange}
                 className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none bg-white"
               >
-                <option value="1">Mundial 2026</option>
+                <option value="WC-2026">Mundial 2026</option>
               </select>
             </div>
             
