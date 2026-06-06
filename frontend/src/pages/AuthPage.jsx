@@ -54,7 +54,14 @@ const AuthPage = () => {
 
       // Éxito: Guardamos en localStorage y redirigimos
       loginUsuario(data);
-      navigate('/dashboard');
+      
+      const inviteCode = localStorage.getItem('inviteCode');
+      if (inviteCode) {
+        localStorage.removeItem('inviteCode');
+        navigate(`/invite/${inviteCode}`);
+      } else {
+        navigate('/dashboard');
+      }
       
     } catch (err) {
       setError(err.message);
