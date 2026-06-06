@@ -10,6 +10,7 @@ import CrearQuinielaPage from './pages/CrearQuinielaPage';
 import ConfiguracionPage from './pages/ConfiguracionPage';
 import QuinielaDetallePage from './pages/QuinielaDetallePage';
 import ProtectedRoute from './components/ProtectedRoute';
+import InvitePage from './pages/InvitePage';
 
 function App() {
   return (
@@ -54,6 +55,7 @@ function App() {
                 </ProtectedRoute>
               } 
             />
+            <Route path="/invite/:codigo" element={<InvitePage />} />
           </Routes>
         </div>
         
