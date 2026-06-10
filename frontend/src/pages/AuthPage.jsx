@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { loginUsuario } from '../utils/auth';
 
 const AuthPage = () => {
-  const [isLogin, setIsLogin] = useState(true);
+  const [authMode, setAuthMode] = useState('login'); // 'login', 'register', 'forgot'
   const [formData, setFormData] = useState({ nombre: '', pin: '', confirm_pin: '' });
   const [error, setError] = useState('');
   const navigate = useNavigate();
@@ -16,10 +16,13 @@ const AuthPage = () => {
     e.preventDefault();
     setError('');
 
-    const url = isLogin ? '/api/usuarios/login' : '/api/usuarios/registro';
+    let url = '';
+    if (authMode === 'login') url = '/api/usuarios/login';
+    else if (authMode === 'register') url = '/api/usuarios/registro';
+    else if (authMode === 'forgot') url = '/api/usuarios/olvido-pin';
     
-    // Validación local de registro
-    if (!isLogin) {
+    // Validación local
+    if (authMode !== 'login') {
       if (formData.pin !== formData.confirm_pin) {
         return setError('Los PIN no coinciden.');
       }
@@ -32,7 +35,7 @@ const AuthPage = () => {
       const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(authMode === 'forgot' ? { nombre: formData.nombre, nuevo_pin: formData.pin } : formData)
       });
       
       let data = {};
@@ -74,10 +77,10 @@ const AuthPage = () => {
         <div className="text-center mb-8">
           <img src="/Logo_quinielas.png" alt="Logo" className="w-16 h-16 mx-auto mb-4" />
           <h2 className="text-3xl font-extrabold text-gray-900">
-            {isLogin ? 'Inicia Sesión' : 'Crea tu Cuenta'}
+            {authMode === 'login' ? 'Inicia Sesión' : authMode === 'register' ? 'Crea tu Cuenta' : 'Recupera tu PIN'}
           </h2>
           <p className="text-gray-500 mt-2">
-            {isLogin ? 'Ingresa para gestionar tus quinielas' : 'Únete a la plataforma definitiva de pronósticos'}
+            {authMode === 'login' ? 'Ingresa para gestionar tus quinielas' : authMode === 'register' ? 'Únete a la plataforma definitiva de pronósticos' : 'Ingresa tu usuario y crea un nuevo PIN'}
           </p>
         </div>
 
@@ -101,7 +104,9 @@ const AuthPage = () => {
             />
           </div>
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">PIN Secreto (4-6 dígitos)</label>
+            <label className="block text-sm font-semibold text-gray-700 mb-1">
+              {authMode === 'forgot' ? 'Nuevo PIN Secreto (4-6 dígitos)' : 'PIN Secreto (4-6 dígitos)'}
+            </label>
             <input 
               type="password" 
               name="pin" 
@@ -114,9 +119,11 @@ const AuthPage = () => {
             />
           </div>
           
-          {!isLogin && (
+          {authMode !== 'login' && (
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">Confirmar PIN</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-1">
+                {authMode === 'forgot' ? 'Confirmar Nuevo PIN' : 'Confirmar PIN'}
+              </label>
               <input 
                 type="password" 
                 name="confirm_pin" 
@@ -134,23 +141,39 @@ const AuthPage = () => {
             type="submit" 
             className="w-full bg-[#111111] hover:bg-black text-white font-bold py-3.5 rounded-lg shadow-md transition-all text-lg mt-4"
           >
-            {isLogin ? 'Ingresar' : 'Registrarme'}
+            {authMode === 'login' ? 'Ingresar' : authMode === 'register' ? 'Registrarme' : 'Actualizar PIN e Ingresar'}
           </button>
         </form>
 
-        <div className="mt-8 text-center border-t border-gray-100 pt-6">
+        <div className="mt-8 text-center border-t border-gray-100 pt-6 space-y-3">
+          {authMode === 'login' && (
+            <p className="text-sm">
+              <button 
+                type="button"
+                onClick={() => {
+                  setAuthMode('forgot');
+                  setError('');
+                  setFormData({ nombre: formData.nombre, pin: '', confirm_pin: '' });
+                }}
+                className="text-blue-600 font-medium hover:underline"
+              >
+                ¿Olvidaste tu PIN?
+              </button>
+            </p>
+          )}
+
           <p className="text-gray-600">
-            {isLogin ? '¿No tienes cuenta?' : '¿Ya tienes una cuenta?'}
+            {authMode === 'login' ? '¿No tienes cuenta?' : '¿Ya tienes una cuenta?'}
             <button 
               type="button"
               onClick={() => {
-                setIsLogin(!isLogin);
+                setAuthMode(authMode === 'login' ? 'register' : 'login');
                 setError('');
                 setFormData({ nombre: '', pin: '', confirm_pin: '' });
               }}
               className="ml-2 text-blue-600 font-bold hover:underline"
             >
-              {isLogin ? 'Regístrate aquí' : 'Inicia Sesión'}
+              {authMode === 'login' ? 'Regístrate aquí' : 'Inicia Sesión'}
             </button>
           </p>
         </div>

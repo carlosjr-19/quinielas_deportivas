@@ -39,6 +39,10 @@ class UsuarioLogin(BaseModel):
     nombre: str
     pin: str
 
+class UsuarioResetPin(BaseModel):
+    nombre: str
+    nuevo_pin: str
+
 class UsuarioRespuesta(BaseModel):
     id: int
     nombre: str
