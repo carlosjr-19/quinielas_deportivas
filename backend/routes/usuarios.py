@@ -40,6 +40,22 @@ def login_usuario(usuario_in: UsuarioLogin, db: Session = Depends(get_db)):
         raise HTTPException(status_code=401, detail="Credenciales incorrectas")
     return usuario
 
+from schemas.schemas import UsuarioResetPin
+
+@router.post("/olvido-pin", response_model=UsuarioRespuesta)
+def reset_pin(usuario_in: UsuarioResetPin, db: Session = Depends(get_db)):
+    usuario = db.query(ModeloUsuario).filter(ModeloUsuario.nombre == usuario_in.nombre).first()
+    if not usuario:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+        
+    if not (usuario_in.nuevo_pin.isdigit() and 4 <= len(usuario_in.nuevo_pin) <= 6):
+        raise HTTPException(status_code=400, detail="El PIN debe tener entre 4 y 6 dígitos")
+        
+    usuario.pin_hash = get_password_hash(usuario_in.nuevo_pin)
+    db.commit()
+    db.refresh(usuario)
+    return usuario
+
 from pydantic import BaseModel
 
 class UsuarioUpdate(BaseModel):
