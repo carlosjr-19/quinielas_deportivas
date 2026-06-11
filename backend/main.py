@@ -13,57 +13,47 @@ from sqlalchemy import text
 
 models.Base.metadata.create_all(bind=engine)
 
-# Auto-migración para añadir texto_libre y el torneo inicial
+# Auto-migración para añadir columnas
 try:
     with engine.connect() as conn:
+        # Función auxiliar para ejecutar e ignorar si ya existe
+        def try_alter(query):
+            try:
+                conn.execute(text(query))
+                conn.commit()
+            except Exception:
+                conn.rollback() # Vital en postgres para que la sesión pueda seguir
+
         # 1. Asegurar columna texto_libre
-        try:
-            conn.execute(text("ALTER TABLE pronosticos ADD COLUMN texto_libre VARCHAR"))
-            conn.commit()
-        except Exception:
-            pass # Ya existe
+        try_alter("ALTER TABLE pronosticos ADD COLUMN texto_libre VARCHAR")
             
         # 1.5 Asegurar columna activo en usuarios_quiniela
-        try:
-            conn.execute(text("ALTER TABLE usuarios_quiniela ADD COLUMN activo BOOLEAN DEFAULT TRUE"))
-            conn.commit()
-        except Exception:
-            pass # Ya existe
+        try_alter("ALTER TABLE usuarios_quiniela ADD COLUMN activo BOOLEAN DEFAULT TRUE")
             
         # 1.6 Asegurar columnas de puntuación en quinielas
-        try:
-            conn.execute(text("ALTER TABLE quinielas ADD COLUMN puntos_exacto INTEGER DEFAULT 3"))
-            conn.commit()
-        except Exception:
-            pass
-        try:
-            conn.execute(text("ALTER TABLE quinielas ADD COLUMN puntos_ganador INTEGER DEFAULT 1"))
-            conn.commit()
-        except Exception:
-            pass
+        try_alter("ALTER TABLE quinielas ADD COLUMN puntos_exacto INTEGER DEFAULT 3")
+        try_alter("ALTER TABLE quinielas ADD COLUMN puntos_ganador INTEGER DEFAULT 1")
             
         # 1.7 Asegurar columnas de goles reales en partidos
-        try:
-            conn.execute(text("ALTER TABLE partidos ADD COLUMN goles_local_real INTEGER"))
-            conn.commit()
-        except Exception:
-            pass
-        try:
-            conn.execute(text("ALTER TABLE partidos ADD COLUMN goles_visitante_real INTEGER"))
-            conn.commit()
-        except Exception:
-            pass
+        try_alter("ALTER TABLE partidos ADD COLUMN goles_local_real INTEGER")
+        try_alter("ALTER TABLE partidos ADD COLUMN goles_visitante_real INTEGER")
             
         # 2. Asegurar que existan los torneos
-        torneo_existe = conn.execute(text("SELECT id FROM torneos WHERE id = 'WC-2026'")).fetchone()
-        if not torneo_existe:
-            conn.execute(text("INSERT INTO torneos (id, nombre) VALUES ('WC-2026', 'World Cup 2026')"))
-            conn.commit()
+        try:
+            torneo_existe = conn.execute(text("SELECT id FROM torneos WHERE id = 'WC-2026'")).fetchone()
+            if not torneo_existe:
+                conn.execute(text("INSERT INTO torneos (id, nombre) VALUES ('WC-2026', 'World Cup 2026')"))
+                conn.commit()
+        except Exception:
+            conn.rollback()
             
-        torneo_libre_existe = conn.execute(text("SELECT id FROM torneos WHERE id = 'LIBRE'")).fetchone()
-        if not torneo_libre_existe:
-            conn.execute(text("INSERT INTO torneos (id, nombre) VALUES ('LIBRE', 'Quiniela Libre')"))
-            conn.commit()
+        try:
+            torneo_libre_existe = conn.execute(text("SELECT id FROM torneos WHERE id = 'LIBRE'")).fetchone()
+            if not torneo_libre_existe:
+                conn.execute(text("INSERT INTO torneos (id, nombre) VALUES ('LIBRE', 'Quiniela Libre')"))
+                conn.commit()
+        except Exception:
+            conn.rollback()
 except Exception as e:
     pass
 
