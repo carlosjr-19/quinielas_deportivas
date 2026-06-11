@@ -15,7 +15,9 @@ router = APIRouter()
 
 @router.post("/", response_model=PronosticoSchema)
 def registrar_pronostico(pronostico_in: PronosticoCreate, db: Session = Depends(get_db)):
-    ahora = datetime.datetime.utcnow()
+    import zoneinfo
+    ahora_utc = datetime.datetime.utcnow()
+    ahora_mexico = datetime.datetime.now(zoneinfo.ZoneInfo("America/Mexico_City")).replace(tzinfo=None)
     
     if pronostico_in.partido_id:
         # 1. Obtener el partido para validar su fecha de inicio
@@ -26,7 +28,7 @@ def registrar_pronostico(pronostico_in: PronosticoCreate, db: Session = Depends(
         # 2. Validar regla de los 10 minutos de bloqueo
         limite_tiempo = partido.fecha - datetime.timedelta(minutes=10)
         
-        if ahora > limite_tiempo:
+        if ahora_mexico > limite_tiempo:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN, 
                 detail="El partido comienza en menos de 10 minutos o ya comenzó. No se permiten modificaciones."
@@ -42,7 +44,7 @@ def registrar_pronostico(pronostico_in: PronosticoCreate, db: Session = Depends(
             # Si ya había predicho, simplemente actualizamos sus goles
             pronostico_existente.goles_local = pronostico_in.goles_local
             pronostico_existente.goles_visitante = pronostico_in.goles_visitante
-            pronostico_existente.insertado_a = ahora
+            pronostico_existente.insertado_a = ahora_utc
             db.commit()
             db.refresh(pronostico_existente)
             
@@ -68,7 +70,7 @@ def registrar_pronostico(pronostico_in: PronosticoCreate, db: Session = Depends(
                 partido_id=pronostico_in.partido_id,
                 goles_local=pronostico_in.goles_local,
                 goles_visitante=pronostico_in.goles_visitante,
-                insertado_a=ahora
+                insertado_a=ahora_utc
             )
             db.add(nuevo_pronostico)
             db.commit()
@@ -94,7 +96,7 @@ def registrar_pronostico(pronostico_in: PronosticoCreate, db: Session = Depends(
         nuevo_pronostico = Pronostico(
             usuario_quiniela_id=pronostico_in.usuario_quiniela_id,
             texto_libre=pronostico_in.texto_libre,
-            insertado_a=ahora
+            insertado_a=ahora_utc
         )
         db.add(nuevo_pronostico)
         db.commit()
