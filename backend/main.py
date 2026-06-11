@@ -30,6 +30,30 @@ try:
         except Exception:
             pass # Ya existe
             
+        # 1.6 Asegurar columnas de puntuación en quinielas
+        try:
+            conn.execute(text("ALTER TABLE quinielas ADD COLUMN puntos_exacto INTEGER DEFAULT 3"))
+            conn.commit()
+        except Exception:
+            pass
+        try:
+            conn.execute(text("ALTER TABLE quinielas ADD COLUMN puntos_ganador INTEGER DEFAULT 1"))
+            conn.commit()
+        except Exception:
+            pass
+            
+        # 1.7 Asegurar columnas de goles reales en partidos
+        try:
+            conn.execute(text("ALTER TABLE partidos ADD COLUMN goles_local_real INTEGER"))
+            conn.commit()
+        except Exception:
+            pass
+        try:
+            conn.execute(text("ALTER TABLE partidos ADD COLUMN goles_visitante_real INTEGER"))
+            conn.commit()
+        except Exception:
+            pass
+            
         # 2. Asegurar que existan los torneos
         torneo_existe = conn.execute(text("SELECT id FROM torneos WHERE id = 'WC-2026'")).fetchone()
         if not torneo_existe:

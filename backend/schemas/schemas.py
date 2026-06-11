@@ -21,6 +21,12 @@ class PartidoBase(BaseModel):
     equipo_visitante: str
     fecha: datetime.datetime
     estado: str = "PENDIENTE"
+    goles_local_real: Optional[int] = None
+    goles_visitante_real: Optional[int] = None
+
+class ResultadoPartidoUpdate(BaseModel):
+    goles_local_real: int
+    goles_visitante_real: int
 
 class PartidoCreate(PartidoBase):
     torneo_id: str
@@ -53,6 +59,8 @@ class QuinielaBase(BaseModel):
     nombre: str
     torneo_id: str
     reglas: Optional[str] = None
+    puntos_exacto: int = 3
+    puntos_ganador: int = 1
 
 class QuinielaCreate(QuinielaBase):
     creador_id: int
@@ -67,6 +75,8 @@ class Quiniela(QuinielaBase):
 class QuinielaUpdate(BaseModel):
     nombre: Optional[str] = None
     reglas: Optional[str] = None
+    puntos_exacto: Optional[int] = None
+    puntos_ganador: Optional[int] = None
 
 class PuntosUpdate(BaseModel):
     puntos: int

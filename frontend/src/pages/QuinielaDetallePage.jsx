@@ -193,7 +193,7 @@ const QuinielaDetallePage = () => {
           {activeTab === 'feed' && <TabFeed feed={feed} miRegistro={miRegistro} recargar={cargarDatos} quiniela={quiniela} />}
           {activeTab === 'predicciones' && <TabPredicciones quiniela={quiniela} miRegistro={miRegistro} recargar={cargarDatos} />}
           {activeTab === 'reglas' && <TabReglas reglas={quiniela.reglas} />}
-          {activeTab === 'admin' && hasAdminAccess && <TabAdmin quiniela={quiniela} miembros={miembros} reload={cargarDatos} miRegistro={miRegistro} eliminarQuiniela={eliminarQuinielaDefinitivamente} />}
+          {activeTab === 'admin' && hasAdminAccess && <TabAdmin quiniela={quiniela} miembros={miembros} reload={cargarDatos} miRegistro={miRegistro} eliminarQuiniela={eliminarQuinielaDefinitivamente} partidos={partidos} />}
         </div>
       </div>
 
@@ -992,17 +992,61 @@ const TabPredicciones = ({ quiniela, miRegistro, recargar }) => {
   );
 };
 
-const TabAdmin = ({ quiniela, miembros, reload, miRegistro, eliminarQuiniela }) => {
+const TabAdmin = ({ quiniela, miembros, reload, miRegistro, eliminarQuiniela, partidos }) => {
   const [nombre, setNombre] = useState(quiniela.nombre);
   const [reglas, setReglas] = useState(quiniela.reglas || '');
+  const [puntosExacto, setPuntosExacto] = useState(quiniela.puntos_exacto ?? 3);
+  const [puntosGanador, setPuntosGanador] = useState(quiniela.puntos_ganador ?? 1);
   const [mensaje, setMensaje] = useState('');
+  
+  const [resultadoPartido, setResultadoPartido] = useState({ local: '', visitante: '' });
+
+  const finalizarPartido = async (partidoId) => {
+    const inputLocal = document.getElementById(`local-${partidoId}`);
+    const inputVisitante = document.getElementById(`visitante-${partidoId}`);
+    
+    if (!inputLocal || !inputVisitante) return;
+    
+    const local = inputLocal.value;
+    const visitante = inputVisitante.value;
+    
+    if (local === '' || visitante === '') {
+      alert("Debes ingresar ambos goles");
+      return;
+    }
+    
+    try {
+      const res = await fetch(`/api/partidos/${partidoId}/resultado`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          goles_local_real: parseInt(local), 
+          goles_visitante_real: parseInt(visitante) 
+        })
+      });
+      if (res.ok) {
+        alert("Partido finalizado y puntos repartidos");
+        reload();
+      } else {
+        const err = await res.json();
+        alert(err.detail || "Error al finalizar el partido");
+      }
+    } catch (e) {
+      alert("Error de conexión");
+    }
+  };
 
   const guardarConfig = async () => {
     try {
       const res = await fetch(`/api/quinielas/${quiniela.codigo_acceso}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nombre, reglas })
+        body: JSON.stringify({ 
+          nombre, 
+          reglas,
+          puntos_exacto: parseInt(puntosExacto) || 0,
+          puntos_ganador: parseInt(puntosGanador) || 0
+        })
       });
       if (res.ok) {
         setMensaje('Configuración guardada.');
@@ -1084,6 +1128,28 @@ const TabAdmin = ({ quiniela, miembros, reload, miRegistro, eliminarQuiniela }) 
               onChange={e => setNombre(e.target.value)} 
             />
           </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Puntos exacto</label>
+              <input 
+                type="number"
+                className="w-full border rounded p-2" 
+                value={puntosExacto} 
+                onChange={e => setPuntosExacto(e.target.value)} 
+                min="0"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Puntos ganador</label>
+              <input 
+                type="number"
+                className="w-full border rounded p-2" 
+                value={puntosGanador} 
+                onChange={e => setPuntosGanador(e.target.value)} 
+                min="0"
+              />
+            </div>
+          </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Reglas (Opcional)</label>
             <textarea 
@@ -1101,6 +1167,62 @@ const TabAdmin = ({ quiniela, miembros, reload, miRegistro, eliminarQuiniela }) 
                   Sincronizar Partidos
                 </span>
               </button>
+            )}
+          </div>
+        </div>
+      </div>
+      )}
+
+      {/* Gestión de Partidos (Finalizar y dar puntos) */}
+      {(miRegistro?.rol === 'admin' || miRegistro?.rol === 'socio') && partidos && (
+      <div>
+        <h2 className="text-xl font-bold mb-4 border-b pb-2">Finalizar Partidos</h2>
+        <div className="bg-white p-4 rounded-lg border shadow-sm">
+          <p className="text-sm text-gray-600 mb-4">Ingresa el marcador final de un partido para repartir los puntos automáticamente a todos los pronósticos.</p>
+          <div className="space-y-4 max-h-96 overflow-y-auto pr-2">
+            {partidos.map(p => {
+              const isFinalizado = p.estado === 'FINALIZADO';
+              return (
+              <div key={p.id} className={`flex flex-col sm:flex-row items-center gap-4 p-3 rounded border ${isFinalizado ? 'bg-red-50 border-red-200' : 'bg-gray-50 border-gray-200'}`}>
+                <div className="flex-1 text-sm font-semibold truncate w-full text-center sm:text-left">
+                  {p.equipo_local} vs {p.equipo_visitante}
+                  {isFinalizado && <span className="ml-2 text-[10px] bg-red-200 text-red-800 px-2 py-0.5 rounded-full uppercase tracking-wider font-bold">Finalizado</span>}
+                </div>
+                <div className="flex items-center gap-2">
+                  <input 
+                    id={`local-${p.id}`}
+                    type="number" min="0" placeholder="L" 
+                    className="w-12 border p-1 text-center rounded"
+                    defaultValue={p.goles_local_real !== null ? p.goles_local_real : ''}
+                  />
+                  <span>-</span>
+                  <input 
+                    id={`visitante-${p.id}`}
+                    type="number" min="0" placeholder="V" 
+                    className="w-12 border p-1 text-center rounded"
+                    defaultValue={p.goles_visitante_real !== null ? p.goles_visitante_real : ''}
+                  />
+                  <button 
+                    onClick={() => {
+                      if(isFinalizado) {
+                         if(window.confirm("¿Deseas modificar el resultado de este partido? Se recalcularán los puntos.")) {
+                            finalizarPartido(p.id);
+                         }
+                      } else {
+                         if(window.confirm("¿Seguro? Esto repartirá los puntos automáticamente a todos los pronósticos.")) {
+                            finalizarPartido(p.id);
+                         }
+                      }
+                    }}
+                    className={`${isFinalizado ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700'} text-white px-3 py-1 rounded text-sm font-bold ml-2 transition-colors`}
+                  >
+                    {isFinalizado ? 'Modificar' : 'Finalizar'}
+                  </button>
+                </div>
+              </div>
+            )})}
+            {partidos.length === 0 && (
+              <p className="text-center text-gray-500 py-4">No hay partidos registrados.</p>
             )}
           </div>
         </div>

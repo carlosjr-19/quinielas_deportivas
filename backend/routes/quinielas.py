@@ -68,7 +68,9 @@ def crear_quiniela(quiniela_in: QuinielaCreate, db: Session = Depends(get_db)):
         nombre=quiniela_in.nombre,
         creador_id=quiniela_in.creador_id,
         torneo_id=quiniela_in.torneo_id,
-        reglas=quiniela_in.reglas
+        reglas=quiniela_in.reglas,
+        puntos_exacto=quiniela_in.puntos_exacto,
+        puntos_ganador=quiniela_in.puntos_ganador
     )
     db.add(nueva_quiniela)
     db.commit()
@@ -141,6 +143,10 @@ def actualizar_quiniela(codigo_acceso: str, quiniela_in: QuinielaUpdate, db: Ses
         quiniela.nombre = quiniela_in.nombre
     if quiniela_in.reglas is not None:
         quiniela.reglas = quiniela_in.reglas
+    if quiniela_in.puntos_exacto is not None:
+        quiniela.puntos_exacto = quiniela_in.puntos_exacto
+    if quiniela_in.puntos_ganador is not None:
+        quiniela.puntos_ganador = quiniela_in.puntos_ganador
         
     db.commit()
     db.refresh(quiniela)
