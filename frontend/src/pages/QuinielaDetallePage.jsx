@@ -310,6 +310,65 @@ const ModalAñadirPronostico = ({ partidos, miRegistro, onClose, onGuardado, mis
     guardarPronosticoLibre(manualInput);
   };
 
+  const getModificados = () => {
+    const mods = [];
+    Object.keys(predicciones).forEach(partidoId => {
+      const p = predicciones[partidoId];
+      if (p.local !== undefined && p.visitante !== undefined && p.local !== '' && p.visitante !== '') {
+        const original = Array.isArray(misPronosticosActuales) ? misPronosticosActuales.find(x => x.partido_id === partidoId) : null;
+        const isDifferent = !original || original.goles_local != p.local || original.goles_visitante != p.visitante;
+        if (isDifferent) {
+          const partido = partidos.find(x => x.id === partidoId);
+          if (partido && !isLocked(partido.fecha)) {
+            mods.push(partidoId);
+          }
+        }
+      }
+    });
+    return mods;
+  };
+
+  const guardarTodos = async () => {
+    const mods = getModificados();
+    if (mods.length === 0) {
+      setMensaje({ text: 'No hay pronósticos nuevos o modificados para guardar.', type: 'error' });
+      return;
+    }
+    setGuardando(true);
+    setMensaje({ text: 'Guardando todos los cambios...', type: 'success' });
+    
+    let successCount = 0;
+    let errors = 0;
+    
+    for (const partidoId of mods) {
+      const { local, visitante } = predicciones[partidoId];
+      try {
+        const res = await fetch('/api/pronosticos/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            partido_id: partidoId,
+            goles_local: parseInt(local),
+            goles_visitante: parseInt(visitante),
+            usuario_quiniela_id: miRegistro.usuario_quiniela_id
+          })
+        });
+        if (res.ok) successCount++;
+        else errors++;
+      } catch (err) {
+        errors++;
+      }
+    }
+    
+    setGuardando(false);
+    if (errors === 0) {
+      setMensaje({ text: `Se guardaron ${successCount} pronósticos con éxito.`, type: 'success' });
+    } else {
+      setMensaje({ text: `Se guardaron ${successCount} pronósticos, pero hubo ${errors} errores.`, type: 'error' });
+    }
+    onGuardado();
+  };
+
   const partidosOrdenados = [...partidos].sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
   const partidosAgrupados = partidosOrdenados.reduce((acc, p) => {
     const d = new Date(p.fecha).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
@@ -323,8 +382,26 @@ const ModalAñadirPronostico = ({ partidos, miRegistro, onClose, onGuardado, mis
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
         <div className="flex justify-between items-center p-5 border-b bg-gray-50">
           <h2 className="text-xl font-bold text-gray-800">Próximos Partidos</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-700 hover:bg-gray-200 p-2 rounded-full transition-colors">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+          <div className="flex items-center gap-4">
+            <button 
+              onClick={guardarTodos}
+              disabled={guardando}
+              className="hidden sm:block bg-[#1c803c] hover:bg-[#14602a] text-white px-4 py-2 rounded-md font-bold text-sm shadow-sm transition-colors disabled:opacity-50"
+            >
+              Guardar Todos los Cambios
+            </button>
+            <button onClick={onClose} className="text-gray-400 hover:text-gray-700 hover:bg-gray-200 p-2 rounded-full transition-colors">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+          </div>
+        </div>
+        <div className="sm:hidden p-4 border-b bg-white flex justify-center">
+          <button 
+            onClick={guardarTodos}
+            disabled={guardando}
+            className="w-full bg-[#1c803c] hover:bg-[#14602a] text-white px-4 py-3 rounded-md font-bold text-sm shadow-sm transition-colors disabled:opacity-50"
+          >
+            Guardar Todos los Cambios
           </button>
         </div>
 
