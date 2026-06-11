@@ -8,7 +8,9 @@ const CrearQuinielaPage = () => {
   const [formData, setFormData] = useState({
     nombre: '',
     torneo_id: 'WC-2026', // ID correcto del torneo
-    reglas: ''
+    reglas: '',
+    puntos_exacto: 3,
+    puntos_ganador: 1
   });
   const [error, setError] = useState('');
 
@@ -22,7 +24,11 @@ const CrearQuinielaPage = () => {
   }, [navigate]);
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value, type } = e.target;
+    setFormData({ 
+      ...formData, 
+      [name]: type === 'number' ? parseInt(value) || 0 : value 
+    });
   };
 
   const handleSubmit = async (e) => {
@@ -87,6 +93,33 @@ const CrearQuinielaPage = () => {
                 <option value="WC-2026">Mundial 2026</option>
                 <option value="LIBRE">Quiniela Libre (Sin partidos predefinidos)</option>
               </select>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Puntos por resultado exacto</label>
+                <input 
+                  type="number" 
+                  name="puntos_exacto" 
+                  value={formData.puntos_exacto} 
+                  onChange={handleChange} 
+                  min="0"
+                  required
+                  className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Puntos por acertar ganador/empate</label>
+                <input 
+                  type="number" 
+                  name="puntos_ganador" 
+                  value={formData.puntos_ganador} 
+                  onChange={handleChange} 
+                  min="0"
+                  required
+                  className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none"
+                />
+              </div>
             </div>
             
             <div>

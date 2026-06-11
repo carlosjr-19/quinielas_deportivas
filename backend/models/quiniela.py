@@ -11,6 +11,8 @@ class Quiniela(Base):
     creador_id = Column(Integer, ForeignKey("usuarios.id")) 
     torneo_id = Column(String, ForeignKey("torneos.id"))
     reglas = Column(String, nullable=True)
+    puntos_exacto = Column(Integer, default=3)
+    puntos_ganador = Column(Integer, default=1)
     
     torneo = relationship("Torneo", back_populates="quinielas")
     creador = relationship("Usuario", back_populates="quinielas_creadas")
