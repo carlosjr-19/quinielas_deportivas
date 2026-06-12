@@ -1180,7 +1180,7 @@ const TabAdmin = ({ quiniela, miembros, reload, miRegistro, eliminarQuiniela, pa
         <div className="bg-white p-4 rounded-lg border shadow-sm">
           <p className="text-sm text-gray-600 mb-4">Ingresa el marcador final de un partido para repartir los puntos automáticamente a todos los pronósticos.</p>
           <div className="space-y-4 max-h-96 overflow-y-auto pr-2">
-            {partidos.map(p => {
+            {[...partidos].sort((a, b) => new Date(a.fecha) - new Date(b.fecha)).map(p => {
               const isFinalizado = p.estado === 'FINALIZADO';
               return (
               <div key={p.id} className={`flex flex-col sm:flex-row items-center gap-4 p-3 rounded border ${isFinalizado ? 'bg-red-50 border-red-200' : 'bg-gray-50 border-gray-200'}`}>

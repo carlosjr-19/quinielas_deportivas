@@ -46,7 +46,7 @@ const DashboardPage = () => {
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
         
         {/* Header Dashboard */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-12 bg-white p-6 rounded-2xl shadow-sm border border-gray-200 gap-4">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 bg-white p-6 rounded-2xl shadow-sm border border-gray-200 gap-4">
           <div className="flex items-center gap-4">
             <div className="w-16 h-16 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center text-2xl font-bold">
               {usuario?.nombre?.charAt(0).toUpperCase()}

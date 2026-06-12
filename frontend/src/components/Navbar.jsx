@@ -41,6 +41,7 @@ const Navbar = () => {
 
         {/* Desktop Nav */}
         <nav className="hidden md:flex items-center gap-8 text-sm font-semibold tracking-wider uppercase">
+          <Link to="/mundial" className="text-blue-400 hover:text-blue-300 transition-colors drop-shadow">Mundial</Link>
           <Link to="/quinielas" className="hover:text-blue-400 transition-colors">Explorar</Link>
           {usuario ? (
             <>
@@ -64,6 +65,7 @@ const Navbar = () => {
       {/* Mobile Nav Overlay */}
       <div className={`md:hidden fixed inset-0 z-40 bg-[#111111] flex flex-col items-center justify-center transition-transform duration-300 ${isMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
         <nav className="flex flex-col items-center gap-8 text-lg font-semibold tracking-wider uppercase text-white">
+          <Link to="/mundial" onClick={() => setIsMenuOpen(false)} className="text-blue-400 hover:text-blue-300 transition-colors">Mundial 2026</Link>
           <Link to="/quinielas" onClick={() => setIsMenuOpen(false)} className="hover:text-blue-400 transition-colors">Explorar Quinielas</Link>
           {usuario ? (
             <>
