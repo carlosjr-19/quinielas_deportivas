@@ -18,7 +18,8 @@
             "team1": "South Korea",
             "team2": "Czech Republic",
             "group": "Group A",
-            "ground": "Guadalajara (Zapopan)"
+            "ground": "Guadalajara (Zapopan)",
+            "score": {"ft": [2, 1]}
         },
         {
             "round": "Matchday 8",
