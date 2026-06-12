@@ -109,21 +109,8 @@ def sincronizar_torneos(db: Session = Depends(get_db)):
                 calcular_puntos_partido(db, nuevo_partido)
             nuevos += 1
             
-    # Limpieza de partidos duplicados o antiguos que no siguen el nuevo formato de ID
-    valid_ids = [f"{torneo.id}-match-{i+1}" for i in range(len(partidos_json))]
-    partidos_viejos = db.query(Partido).filter(Partido.torneo_id == torneo.id, Partido.id.notin_(valid_ids)).all()
-    
-    borrados = 0
-    if partidos_viejos:
-        from models.pronostico import Pronostico
-        for pv in partidos_viejos:
-            # Borrar pronósticos huérfanos asociados al partido obsoleto para evitar error de FK
-            db.query(Pronostico).filter(Pronostico.partido_id == pv.id).delete()
-            db.delete(pv)
-            borrados += 1
-            
     db.commit()
-    return {"message": "Sincronización completa", "torneo": torneo.nombre, "nuevos": nuevos, "actualizados": actualizados, "borrados": borrados}
+    return {"message": "Sincronización completa", "torneo": torneo.nombre, "nuevos": nuevos, "actualizados": actualizados}
 
 @router.post("/", response_model=TorneoSchema)
 def crear_torneo_mock(torneo_in: TorneoCreate, db: Session = Depends(get_db)):
