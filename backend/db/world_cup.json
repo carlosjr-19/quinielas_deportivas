@@ -64,7 +64,8 @@
             "team1": "Canada",
             "team2": "Bosnia & Herzegovina",
             "group": "Group B",
-            "ground": "Toronto"
+            "ground": "Toronto",
+            "score": {"ft": [1, 1]}
         },
         {
             "round": "Matchday 3",
