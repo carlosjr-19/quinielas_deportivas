@@ -23,26 +23,24 @@ def obtener_proximos_partidos(db: Session = Depends(get_db)):
                  .limit(10)\
                  .all()
                  
+    # Auto-sincronizar si no hay partidos próximos
+    if not partidos:
+        try:
+            from routes.torneos import sincronizar_torneos
+            sincronizar_torneos(db)
+            partidos = db.query(Partido)\
+                         .filter(Partido.fecha >= ahora_mexico)\
+                         .order_by(Partido.fecha.asc())\
+                         .limit(10)\
+                         .all()
+        except Exception:
+            pass
+                 
     return partidos
 
 from schemas import schemas
 
-@router.put("/{partido_id}/resultado", response_model=PartidoSchema)
-def actualizar_resultado_partido(partido_id: str, resultado: schemas.ResultadoPartidoUpdate, db: Session = Depends(get_db)):
-    """
-    Actualiza el resultado de un partido, lo marca como FINALIZADO y asigna
-    automáticamente los puntos a todos los pronósticos asociados,
-    utilizando las reglas de puntuación de la quiniela correspondiente.
-    """
-    partido = db.query(Partido).filter(Partido.id == partido_id).first()
-    from fastapi import HTTPException
-    if not partido:
-        raise HTTPException(status_code=404, detail="Partido no encontrado")
-        
-    partido.goles_local_real = resultado.goles_local_real
-    partido.goles_visitante_real = resultado.goles_visitante_real
-    partido.estado = "FINALIZADO"
-    
+def calcular_puntos_partido(db: Session, partido: Partido):
     # Evaluar resultado real
     empate_real = partido.goles_local_real == partido.goles_visitante_real
     gana_local_real = partido.goles_local_real > partido.goles_visitante_real
@@ -53,11 +51,9 @@ def actualizar_resultado_partido(partido_id: str, resultado: schemas.ResultadoPa
     from models.usuario_quiniela import UsuarioQuiniela
     from models.quiniela import Quiniela
     
-    pronosticos = db.query(Pronostico).filter(Pronostico.partido_id == partido_id).all()
+    pronosticos = db.query(Pronostico).filter(Pronostico.partido_id == partido.id).all()
     
     for pronostico in pronosticos:
-        # Obtener reglas de puntuación de la quiniela a la que pertenece este pronóstico
-        # El pronóstico tiene usuario_quiniela_id, el cual tiene quiniela_id
         uq = db.query(UsuarioQuiniela).filter(UsuarioQuiniela.id == pronostico.usuario_quiniela_id).first()
         if not uq:
             continue
@@ -90,5 +86,25 @@ def actualizar_resultado_partido(partido_id: str, resultado: schemas.ResultadoPa
         uq.puntos_totales += diferencia_puntos
         
     db.commit()
+
+@router.put("/{partido_id}/resultado", response_model=PartidoSchema)
+def actualizar_resultado_partido(partido_id: str, resultado: schemas.ResultadoPartidoUpdate, db: Session = Depends(get_db)):
+    """
+    Actualiza el resultado de un partido, lo marca como FINALIZADO y asigna
+    automáticamente los puntos a todos los pronósticos asociados,
+    utilizando las reglas de puntuación de la quiniela correspondiente.
+    """
+    partido = db.query(Partido).filter(Partido.id == partido_id).first()
+    from fastapi import HTTPException
+    if not partido:
+        raise HTTPException(status_code=404, detail="Partido no encontrado")
+        
+    partido.goles_local_real = resultado.goles_local_real
+    partido.goles_visitante_real = resultado.goles_visitante_real
+    partido.estado = "FINALIZADO"
+    db.commit()
+    
+    calcular_puntos_partido(db, partido)
+    
     db.refresh(partido)
     return partido

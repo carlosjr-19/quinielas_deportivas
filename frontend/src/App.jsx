@@ -12,6 +12,10 @@ import QuinielaDetallePage from './pages/QuinielaDetallePage';
 import ProtectedRoute from './components/ProtectedRoute';
 import InvitePage from './pages/InvitePage';
 
+import DevSyncPage from './pages/DevSyncPage';
+
+import MundialPage from './pages/MundialPage';
+
 function App() {
   return (
     <BrowserRouter>
@@ -21,6 +25,7 @@ function App() {
         <div className="flex-grow flex flex-col">
           <Routes>
             <Route path="/" element={<HomePage />} />
+            <Route path="/mundial" element={<MundialPage />} />
             <Route path="/quinielas" element={<QuinielasPage />} />
             <Route path="/ingresar" element={<AuthPage />} />
             <Route 
@@ -56,6 +61,8 @@ function App() {
               } 
             />
             <Route path="/invite/:codigo" element={<InvitePage />} />
+            {/* Ruta secreta de administrador */}
+            <Route path="/dev" element={<DevSyncPage />} />
           </Routes>
         </div>
         
