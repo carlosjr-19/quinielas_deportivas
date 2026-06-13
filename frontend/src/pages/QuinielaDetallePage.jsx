@@ -981,29 +981,29 @@ const TabPartidos = ({ quiniela, miRegistro, recargar }) => {
               <div className="bg-gray-50 p-4 border-b text-center">
                 <span className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-2 block">{formattedDate} - {formattedTime}</span>
                 {partido.partido_id !== 'libre' ? (
-                  <div className="flex items-center justify-center gap-4">
-                    <div className="flex items-center gap-2 justify-end w-2/5">
-                      <span className="font-bold text-gray-800 text-lg md:text-xl truncate">{partido.equipo_local}</span>
+                  <div className="flex items-center justify-center gap-2 sm:gap-4 w-full">
+                    <div className="flex items-center gap-1 sm:gap-2 justify-end flex-1 min-w-0">
+                      <span className="font-bold text-gray-800 text-sm sm:text-lg md:text-xl truncate">{partido.equipo_local}</span>
                       {getTeamFlagUrl(partido.equipo_local) ? (
-                        <img src={getTeamFlagUrl(partido.equipo_local)} alt={partido.equipo_local} className="w-8 h-auto shadow-sm rounded-sm" />
+                        <img src={getTeamFlagUrl(partido.equipo_local)} alt={partido.equipo_local} className="w-5 sm:w-8 h-auto shadow-sm rounded-sm shrink-0" />
                       ) : (
-                        <span className="text-2xl">🏳️</span>
+                        <span className="text-lg sm:text-2xl shrink-0">🏳️</span>
                       )}
                     </div>
-                    <div className="px-4 py-2 bg-white rounded-md border-2 border-gray-200 shadow-sm shrink-0">
+                    <div className="px-3 sm:px-4 py-1 sm:py-2 bg-white rounded-md border-2 border-gray-200 shadow-sm shrink-0">
                       {partido.estado === 'FINALIZADO' ? (
-                        <span className="text-xl font-black text-gray-800 tracking-widest">{partido.goles_local_real}-{partido.goles_visitante_real}</span>
+                        <span className="text-base sm:text-xl font-black text-gray-800 tracking-widest">{partido.goles_local_real}-{partido.goles_visitante_real}</span>
                       ) : (
-                        <span className="text-xl text-gray-400 font-bold">-</span>
+                        <span className="text-base sm:text-xl text-gray-400 font-bold">-</span>
                       )}
                     </div>
-                    <div className="flex items-center gap-2 justify-start w-2/5">
+                    <div className="flex items-center gap-1 sm:gap-2 justify-start flex-1 min-w-0">
                       {getTeamFlagUrl(partido.equipo_visitante) ? (
-                        <img src={getTeamFlagUrl(partido.equipo_visitante)} alt={partido.equipo_visitante} className="w-8 h-auto shadow-sm rounded-sm" />
+                        <img src={getTeamFlagUrl(partido.equipo_visitante)} alt={partido.equipo_visitante} className="w-5 sm:w-8 h-auto shadow-sm rounded-sm shrink-0" />
                       ) : (
-                        <span className="text-2xl">🏳️</span>
+                        <span className="text-lg sm:text-2xl shrink-0">🏳️</span>
                       )}
-                      <span className="font-bold text-gray-800 text-lg md:text-xl truncate">{partido.equipo_visitante}</span>
+                      <span className="font-bold text-gray-800 text-sm sm:text-lg md:text-xl truncate">{partido.equipo_visitante}</span>
                     </div>
                   </div>
                 ) : (
@@ -1011,44 +1011,44 @@ const TabPartidos = ({ quiniela, miRegistro, recargar }) => {
                 )}
               </div>
               
-              <div className="p-4 bg-white divide-y divide-gray-100">
+              <div className="p-2 sm:p-4 bg-white divide-y divide-gray-100">
                 {partido.pronosticos.map((p, idx) => (
-                  <div key={p.id} className="py-2 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold text-sm">
+                  <div key={p.id} className="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-0">
+                    <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
+                      <div className="w-6 h-6 sm:w-8 sm:h-8 shrink-0 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold text-xs sm:text-sm">
                         {p.usuario.charAt(0).toUpperCase()}
                       </div>
-                      <span className="font-semibold text-gray-700">{p.usuario}</span>
-                      <span className="text-gray-900 font-bold ml-2">
+                      <span className="font-semibold text-gray-700 text-sm sm:text-base truncate flex-1 sm:flex-none">{p.usuario}</span>
+                      <span className="text-gray-900 font-bold whitespace-nowrap ml-auto sm:ml-2 shrink-0">
                         {partido.partido_id !== 'libre' ? `${p.goles_local} - ${p.goles_visitante}` : p.pronostico}
                       </span>
                     </div>
                     
-                    <div className="flex items-center gap-3 shrink-0">
-                      <span className={`text-xs font-bold px-2 py-1 rounded-full ${p.puntos_obtenidos > 0 ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-500'}`}>
+                    <div className="flex items-center justify-end gap-2 sm:gap-3 shrink-0 ml-8 sm:ml-0">
+                      <span className={`text-[10px] sm:text-xs font-bold px-2 py-1 rounded-full whitespace-nowrap ${p.puntos_obtenidos > 0 ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-500'}`}>
                         {p.puntos_obtenidos !== null && p.puntos_obtenidos !== undefined ? `${p.puntos_obtenidos} pts` : '0 pts'}
                       </span>
                       
                       {(miRegistro?.rol === 'admin' || miRegistro?.rol === 'socio') && (
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-1 shrink-0">
                           <input 
                             type="number" 
                             min="0" max="5" 
-                            className="w-10 text-center border rounded text-xs px-1 py-1"
+                            className="w-10 sm:w-12 text-center border rounded text-xs px-1 py-1"
                             id={`puntos-partido-${p.id}`}
                             defaultValue={p.puntos_obtenidos || 0}
                           />
                           <button 
                             onClick={() => asignarPuntos(p.id, document.getElementById(`puntos-partido-${p.id}`).value)}
-                            className="bg-blue-600 hover:bg-blue-700 text-white text-[10px] px-2 py-1 rounded font-bold"
+                            className="bg-blue-600 hover:bg-blue-700 text-white text-[10px] px-2 py-1 rounded font-bold shrink-0"
                           >
                             OK
                           </button>
                           <button 
                             onClick={() => eliminarPronostico(p.id)}
-                            className="text-red-500 hover:text-red-700 p-1"
+                            className="text-red-500 hover:text-red-700 p-1 shrink-0"
                           >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                            <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                           </button>
                         </div>
                       )}
