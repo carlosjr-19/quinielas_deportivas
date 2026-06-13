@@ -56,6 +56,9 @@ const QuinielaDetallePage = () => {
   if (!quiniela) return null;
 
   const miRegistro = miembros.find(m => m.usuario_id === usuarioLocal.id);
+  const sortedMiembros = [...miembros].sort((a, b) => b.puntos_totales - a.puntos_totales);
+  const miPosicion = sortedMiembros.findIndex(m => m.usuario_id === usuarioLocal.id) + 1;
+  
   const isAdmin = miRegistro?.rol === 'admin';
   const isSocio = miRegistro?.rol === 'socio';
   const hasAdminAccess = isAdmin || isSocio;
@@ -159,10 +162,10 @@ const QuinielaDetallePage = () => {
               Muro Social
             </button>
             <button 
-              className={`pb-2 whitespace-nowrap ${activeTab === 'predicciones' ? 'border-b-2 border-[#1c803c] font-bold text-[#1c803c]' : 'text-gray-500'}`}
-              onClick={() => setActiveTab('predicciones')}
+              className={`pb-2 whitespace-nowrap ${activeTab === 'partidos' ? 'border-b-2 border-[#1c803c] font-bold text-[#1c803c]' : 'text-gray-500'}`}
+              onClick={() => setActiveTab('partidos')}
             >
-              Predicciones
+              Partidos
             </button>
             <button 
               className={`pb-2 whitespace-nowrap ${activeTab === 'reglas' ? 'border-b-2 border-[#1c803c] font-bold text-[#1c803c]' : 'text-gray-500'}`}
@@ -188,10 +191,10 @@ const QuinielaDetallePage = () => {
 
       <div className="max-w-4xl mx-auto pb-12">
         <div className="bg-white rounded-lg shadow-md p-6">
-          {activeTab === 'pronosticos' && <TabPronosticos partidos={partidos} miRegistro={miRegistro} recargar={cargarDatos} />}
+          {activeTab === 'pronosticos' && <TabPronosticos partidos={partidos} miRegistro={miRegistro} recargar={cargarDatos} miPosicion={miPosicion} />}
           {activeTab === 'posiciones' && <TabPosiciones miembros={miembros} quiniela={quiniela} />}
           {activeTab === 'feed' && <TabFeed feed={feed} miRegistro={miRegistro} recargar={cargarDatos} quiniela={quiniela} />}
-          {activeTab === 'predicciones' && <TabPredicciones quiniela={quiniela} miRegistro={miRegistro} recargar={cargarDatos} />}
+          {activeTab === 'partidos' && <TabPartidos quiniela={quiniela} miRegistro={miRegistro} recargar={cargarDatos} />}
           {activeTab === 'reglas' && <TabReglas reglas={quiniela.reglas} />}
           {activeTab === 'admin' && hasAdminAccess && <TabAdmin quiniela={quiniela} miembros={miembros} reload={cargarDatos} miRegistro={miRegistro} eliminarQuiniela={eliminarQuinielaDefinitivamente} partidos={partidos} />}
         </div>
@@ -529,7 +532,7 @@ const ModalAñadirPronostico = ({ partidos, miRegistro, onClose, onGuardado, mis
   );
 };
 
-const TabPronosticos = ({ partidos, miRegistro, recargar }) => {
+const TabPronosticos = ({ partidos, miRegistro, recargar, miPosicion }) => {
   const [misPronosticos, setMisPronosticos] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -553,7 +556,15 @@ const TabPronosticos = ({ partidos, miRegistro, recargar }) => {
   return (
     <div>
       <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4 border-b pb-4">
-        <h2 className="text-2xl font-bold text-gray-800">Mi Historial de Pronósticos</h2>
+        <div>
+          <h2 className="text-2xl font-bold text-gray-800">Mi Historial de Pronósticos</h2>
+          {miRegistro && (
+            <p className="text-gray-600 mt-1 font-medium">
+              Posición actual: <span className="text-[#1c803c] font-bold">#{miPosicion}</span> &nbsp;|&nbsp; 
+              Puntos: <span className="text-[#1c803c] font-bold">{miRegistro.puntos_totales} pts</span>
+            </p>
+          )}
+        </div>
         <button 
           onClick={() => setIsModalOpen(true)}
           className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-6 rounded-lg shadow-md hover:shadow-lg transition-all flex items-center gap-2 transform hover:-translate-y-0.5"
@@ -621,6 +632,13 @@ const TabPronosticos = ({ partidos, miRegistro, recargar }) => {
                     )}
                     <span className="text-sm font-bold text-gray-700 truncate w-full text-center">{p.equipo_visitante}</span>
                   </div>
+                </div>
+              )}
+              
+              {p.estado_partido === 'FINALIZADO' && (
+                <div className="mt-3 text-center bg-green-50 p-2 rounded-lg border border-green-100">
+                  <p className="text-[10px] font-bold text-green-700 uppercase tracking-widest mb-1">Resultado Final</p>
+                  <p className="text-sm font-black text-gray-800 tracking-wider">{p.goles_local_real} - {p.goles_visitante_real}</p>
                 </div>
               )}
             </div>
@@ -855,7 +873,7 @@ const TabReglas = ({ reglas }) => {
   );
 };
 
-const TabPredicciones = ({ quiniela, miRegistro, recargar }) => {
+const TabPartidos = ({ quiniela, miRegistro, recargar }) => {
   const [predicciones, setPredicciones] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -891,7 +909,7 @@ const TabPredicciones = ({ quiniela, miRegistro, recargar }) => {
       });
       if (res.ok) {
         recargar();
-        fetchPredicciones(); // Refrescar vista local
+        fetchPredicciones();
       } else {
         alert("Error al asignar puntos");
       }
@@ -914,78 +932,138 @@ const TabPredicciones = ({ quiniela, miRegistro, recargar }) => {
     } catch (e) { console.error(e); }
   };
 
-  if (loading) return <div className="text-gray-500 py-8 text-center font-medium">Cargando predicciones...</div>;
+  if (loading) return <div className="text-gray-500 py-8 text-center font-medium">Cargando partidos...</div>;
 
   const agrupadas = {};
   predicciones.forEach(p => {
-    const d = new Date(p.fecha);
-    const dateStr = d.toLocaleDateString('es-ES', { day: 'numeric', month: 'long' });
-    const timeStr = d.toLocaleTimeString('es-ES', { hour: 'numeric', minute: '2-digit' });
-    const key = `${dateStr} ${timeStr} - ${p.usuario}`;
-    if (!agrupadas[key]) agrupadas[key] = [];
-    agrupadas[key].push(p);
+    if (p.partido_id) {
+      if (!agrupadas[p.partido_id]) {
+        agrupadas[p.partido_id] = {
+          partido_id: p.partido_id,
+          equipo_local: p.equipo_local,
+          equipo_visitante: p.equipo_visitante,
+          fecha: p.fecha_partido,
+          estado: p.estado_partido,
+          goles_local_real: p.goles_local_real,
+          goles_visitante_real: p.goles_visitante_real,
+          pronosticos: []
+        };
+      }
+      agrupadas[p.partido_id].pronosticos.push(p);
+    } else {
+      if (!agrupadas['libre']) {
+        agrupadas['libre'] = {
+          partido_id: 'libre',
+          equipo_local: 'Libre',
+          equipo_visitante: 'Libre',
+          fecha: new Date().toISOString(),
+          estado: 'N/A',
+          pronosticos: []
+        };
+      }
+      agrupadas['libre'].pronosticos.push(p);
+    }
   });
+  
+  const partidosArray = Object.values(agrupadas).sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
 
   return (
     <div>
-      <h2 className="text-xl font-bold mb-6">Todas las Predicciones</h2>
-      <div className="space-y-6">
-        {Object.keys(agrupadas).map(key => (
-          <div key={key} className="bg-white border rounded-xl p-5 shadow-sm">
-            <h3 className="font-bold text-gray-800 border-b pb-3 mb-4 flex items-center gap-2">
-              <span className="text-xl">📅</span> {key}
-            </h3>
-            <div className="space-y-3 pl-2">
-              {agrupadas[key].map(p => (
-                <div key={p.id} className="flex flex-col md:flex-row justify-between md:items-center gap-4 bg-gray-50 px-4 py-3 rounded-lg border border-gray-100">
-                  <div className="flex gap-4 items-center flex-1">
-                    <span className="text-gray-600 font-medium min-w-[120px] md:min-w-[150px]">{p.partido}</span>
-                    <span className="font-black text-lg bg-white px-3 py-0.5 rounded shadow-sm border border-gray-200">{p.pronostico}</span>
+      <h2 className="text-xl font-bold mb-6">Partidos y Pronósticos</h2>
+      <div className="space-y-8">
+        {partidosArray.map(partido => {
+          const matchDate = new Date(partido.fecha);
+          const formattedTime = matchDate.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) + ' hrs';
+          const formattedDate = matchDate.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' });
+
+          return (
+            <div key={partido.partido_id} className="bg-white border rounded-xl overflow-hidden shadow-sm">
+              <div className="bg-gray-50 p-4 border-b text-center">
+                <span className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-2 block">{formattedDate} - {formattedTime}</span>
+                {partido.partido_id !== 'libre' ? (
+                  <div className="flex items-center justify-center gap-4">
+                    <div className="flex items-center gap-2 justify-end w-2/5">
+                      <span className="font-bold text-gray-800 text-lg md:text-xl truncate">{partido.equipo_local}</span>
+                      {getTeamFlagUrl(partido.equipo_local) ? (
+                        <img src={getTeamFlagUrl(partido.equipo_local)} alt={partido.equipo_local} className="w-8 h-auto shadow-sm rounded-sm" />
+                      ) : (
+                        <span className="text-2xl">🏳️</span>
+                      )}
+                    </div>
+                    <div className="px-4 py-2 bg-white rounded-md border-2 border-gray-200 shadow-sm shrink-0">
+                      {partido.estado === 'FINALIZADO' ? (
+                        <span className="text-xl font-black text-gray-800 tracking-widest">{partido.goles_local_real}-{partido.goles_visitante_real}</span>
+                      ) : (
+                        <span className="text-xl text-gray-400 font-bold">-</span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 justify-start w-2/5">
+                      {getTeamFlagUrl(partido.equipo_visitante) ? (
+                        <img src={getTeamFlagUrl(partido.equipo_visitante)} alt={partido.equipo_visitante} className="w-8 h-auto shadow-sm rounded-sm" />
+                      ) : (
+                        <span className="text-2xl">🏳️</span>
+                      )}
+                      <span className="font-bold text-gray-800 text-lg md:text-xl truncate">{partido.equipo_visitante}</span>
+                    </div>
                   </div>
-                  
-                  <div className="flex items-center gap-3 shrink-0">
-                    <span className="text-sm font-bold bg-green-100 text-green-800 px-3 py-1.5 rounded-full whitespace-nowrap shadow-sm border border-green-200">
-                      {p.puntos_obtenidos !== null && p.puntos_obtenidos !== undefined ? `${p.puntos_obtenidos} pts` : '0 pts'}
-                    </span>
+                ) : (
+                  <div className="font-bold text-lg text-gray-800">Predicciones Libres</div>
+                )}
+              </div>
+              
+              <div className="p-4 bg-white divide-y divide-gray-100">
+                {partido.pronosticos.map((p, idx) => (
+                  <div key={p.id} className="py-2 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold text-sm">
+                        {p.usuario.charAt(0).toUpperCase()}
+                      </div>
+                      <span className="font-semibold text-gray-700">{p.usuario}</span>
+                      <span className="text-gray-900 font-bold ml-2">
+                        {partido.partido_id !== 'libre' ? `${p.goles_local} - ${p.goles_visitante}` : p.pronostico}
+                      </span>
+                    </div>
                     
-                    {(miRegistro?.rol === 'admin' || miRegistro?.rol === 'socio') && (
-                      <div className="flex items-center gap-2">
-                        <div className="flex items-center gap-1 bg-white p-1 rounded-lg border shadow-sm">
+                    <div className="flex items-center gap-3 shrink-0">
+                      <span className={`text-xs font-bold px-2 py-1 rounded-full ${p.puntos_obtenidos > 0 ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-500'}`}>
+                        {p.puntos_obtenidos !== null && p.puntos_obtenidos !== undefined ? `${p.puntos_obtenidos} pts` : '0 pts'}
+                      </span>
+                      
+                      {(miRegistro?.rol === 'admin' || miRegistro?.rol === 'socio') && (
+                        <div className="flex items-center gap-1">
                           <input 
                             type="number" 
                             min="0" max="5" 
-                            className="w-12 text-center border rounded-md text-sm px-1 py-1 focus:ring-blue-500 focus:border-blue-500"
-                            placeholder="0-5"
-                            id={`puntos-pred-${p.id}`}
+                            className="w-10 text-center border rounded text-xs px-1 py-1"
+                            id={`puntos-partido-${p.id}`}
                             defaultValue={p.puntos_obtenidos || 0}
                           />
                           <button 
-                            onClick={() => asignarPuntos(p.id, document.getElementById(`puntos-pred-${p.id}`).value)}
-                            className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-2 py-1.5 rounded-md font-bold transition-colors"
+                            onClick={() => asignarPuntos(p.id, document.getElementById(`puntos-partido-${p.id}`).value)}
+                            className="bg-blue-600 hover:bg-blue-700 text-white text-[10px] px-2 py-1 rounded font-bold"
                           >
                             OK
                           </button>
+                          <button 
+                            onClick={() => eliminarPronostico(p.id)}
+                            className="text-red-500 hover:text-red-700 p-1"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                          </button>
                         </div>
-                        <button 
-                          onClick={() => eliminarPronostico(p.id)}
-                          className="bg-red-50 hover:bg-red-100 text-red-600 p-2 rounded-lg border border-red-200 transition-colors"
-                          title="Eliminar pronóstico"
-                        >
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                        </button>
-                      </div>
-                    )}
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+                {partido.pronosticos.length === 0 && (
+                  <div className="text-gray-500 text-sm text-center py-2">Nadie ha hecho un pronóstico para este partido.</div>
+                )}
+              </div>
             </div>
-          </div>
-        ))}
-        {Object.keys(agrupadas).length === 0 && (
-          <div className="text-center py-12 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200">
-            <span className="text-4xl mb-4 block">⚽</span>
-            <p className="text-gray-500 font-medium">No hay predicciones todavía.</p>
-          </div>
+          );
+        })}
+        {partidosArray.length === 0 && (
+          <div className="text-center py-8 text-gray-500">No hay partidos ni pronósticos aún.</div>
         )}
       </div>
     </div>
