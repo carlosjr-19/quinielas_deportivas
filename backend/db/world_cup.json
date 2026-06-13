@@ -89,7 +89,13 @@
             "team1": "Qatar",
             "team2": "Switzerland",
             "group": "Group B",
-            "ground": "San Francisco Bay Area (Santa Clara)"
+            "ground": "San Francisco Bay Area (Santa Clara)",
+            "score": {
+                "ft": [
+                    1,
+                    1
+                ]
+            }
         },
         {
             "round": "Matchday 8",
