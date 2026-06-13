@@ -173,7 +173,8 @@
             "team1": "USA",
             "team2": "Paraguay",
             "group": "Group D",
-            "ground": "Los Angeles (Inglewood)"
+            "ground": "Los Angeles (Inglewood)",
+            "score": {"ft": [4, 1]}
         },
         {
             "round": "Matchday 3",
