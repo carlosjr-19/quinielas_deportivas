@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy import Column, Integer, String, ForeignKey, Boolean
 from sqlalchemy.orm import relationship
 from db.database import Base
 
@@ -13,6 +13,7 @@ class Quiniela(Base):
     reglas = Column(String, nullable=True)
     puntos_exacto = Column(Integer, default=3)
     puntos_ganador = Column(Integer, default=1)
+    bloqueo_activo = Column(Boolean, default=True)
     
     torneo = relationship("Torneo", back_populates="quinielas")
     creador = relationship("Usuario", back_populates="quinielas_creadas")

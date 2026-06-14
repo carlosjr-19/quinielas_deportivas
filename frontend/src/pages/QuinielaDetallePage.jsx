@@ -191,7 +191,7 @@ const QuinielaDetallePage = () => {
 
       <div className="max-w-4xl mx-auto pb-12">
         <div className="bg-white rounded-lg shadow-md p-6">
-          {activeTab === 'pronosticos' && <TabPronosticos partidos={partidos} miRegistro={miRegistro} recargar={cargarDatos} miPosicion={miPosicion} />}
+          {activeTab === 'pronosticos' && <TabPronosticos partidos={partidos} miRegistro={miRegistro} recargar={cargarDatos} miPosicion={miPosicion} quiniela={quiniela} />}
           {activeTab === 'posiciones' && <TabPosiciones miembros={miembros} quiniela={quiniela} />}
           {activeTab === 'feed' && <TabFeed feed={feed} miRegistro={miRegistro} recargar={cargarDatos} quiniela={quiniela} />}
           {activeTab === 'partidos' && <TabPartidos quiniela={quiniela} miRegistro={miRegistro} recargar={cargarDatos} />}
@@ -205,7 +205,7 @@ const QuinielaDetallePage = () => {
   );
 };
 
-const ModalAñadirPronostico = ({ partidos, miRegistro, onClose, onGuardado, misPronosticosActuales }) => {
+const ModalAñadirPronostico = ({ partidos, miRegistro, onClose, onGuardado, misPronosticosActuales, quiniela }) => {
   const [predicciones, setPredicciones] = useState({});
   const [guardando, setGuardando] = useState(false);
   const [mensaje, setMensaje] = useState({ text: '', type: '' });
@@ -232,8 +232,16 @@ const ModalAñadirPronostico = ({ partidos, miRegistro, onClose, onGuardado, mis
   };
 
   const isLocked = (fechaStr) => {
-    const matchDate = new Date(fechaStr).getTime();
-    return Date.now() > (matchDate - 600000); // 10 minutos
+    if (quiniela && quiniela.bloqueo_activo === false) {
+       const matchDate = new Date(fechaStr);
+       const today = new Date();
+       if (matchDate.getFullYear() < today.getFullYear()) return true;
+       if (matchDate.getFullYear() === today.getFullYear() && matchDate.getMonth() < today.getMonth()) return true;
+       if (matchDate.getFullYear() === today.getFullYear() && matchDate.getMonth() === today.getMonth() && matchDate.getDate() < today.getDate()) return true;
+       return false;
+    }
+    const matchTime = new Date(fechaStr).getTime();
+    return Date.now() > (matchTime - 180000); // 3 minutos
   };
 
   const guardarPronostico = async (partidoId, localScore, visitanteScore) => {
@@ -524,7 +532,7 @@ const ModalAñadirPronostico = ({ partidos, miRegistro, onClose, onGuardado, mis
   );
 };
 
-const TabPronosticos = ({ partidos, miRegistro, recargar, miPosicion }) => {
+const TabPronosticos = ({ partidos, miRegistro, recargar, miPosicion, quiniela }) => {
   const [misPronosticos, setMisPronosticos] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -657,6 +665,7 @@ const TabPronosticos = ({ partidos, miRegistro, recargar, miPosicion }) => {
            onClose={() => setIsModalOpen(false)} 
            onGuardado={() => { cargarMisPronosticos(); recargar(); }} 
            misPronosticosActuales={misPronosticos}
+           quiniela={quiniela}
         />
       )}
     </div>
@@ -1067,6 +1076,7 @@ const TabAdmin = ({ quiniela, miembros, reload, miRegistro, eliminarQuiniela, pa
   const [reglas, setReglas] = useState(quiniela.reglas || '');
   const [puntosExacto, setPuntosExacto] = useState(quiniela.puntos_exacto ?? 3);
   const [puntosGanador, setPuntosGanador] = useState(quiniela.puntos_ganador ?? 1);
+  const [bloqueoActivo, setBloqueoActivo] = useState(quiniela.bloqueo_activo !== false); // default to true if undefined
   const [mensaje, setMensaje] = useState('');
   
   const [resultadoPartido, setResultadoPartido] = useState({ local: '', visitante: '' });
@@ -1115,7 +1125,8 @@ const TabAdmin = ({ quiniela, miembros, reload, miRegistro, eliminarQuiniela, pa
           nombre, 
           reglas,
           puntos_exacto: parseInt(puntosExacto) || 0,
-          puntos_ganador: parseInt(puntosGanador) || 0
+          puntos_ganador: parseInt(puntosGanador) || 0,
+          bloqueo_activo: bloqueoActivo
         })
       });
       if (res.ok) {
@@ -1185,7 +1196,7 @@ const TabAdmin = ({ quiniela, miembros, reload, miRegistro, eliminarQuiniela, pa
   return (
     <div className="space-y-8">
       {/* Edición Básica */}
-      {miRegistro?.rol === 'admin' && (
+      {(miRegistro?.rol === 'admin' || miRegistro?.rol === 'socio') && (
       <div>
         <h2 className="text-xl font-bold mb-4 border-b pb-2">Configuración</h2>
         {mensaje && <p className="text-blue-600 mb-4 font-semibold p-3 bg-blue-50 rounded-lg">{mensaje}</p>}
@@ -1227,6 +1238,28 @@ const TabAdmin = ({ quiniela, miembros, reload, miRegistro, eliminarQuiniela, pa
               value={reglas} 
               onChange={e => setReglas(e.target.value)} 
             />
+          </div>
+          <div className="pt-2 border-t border-gray-100 mt-2">
+            <label className="flex items-center cursor-pointer p-3 rounded-lg border transition-colors bg-white">
+              <div className="relative">
+                <input 
+                  type="checkbox" 
+                  className="sr-only" 
+                  checked={bloqueoActivo} 
+                  onChange={() => setBloqueoActivo(!bloqueoActivo)} 
+                />
+                <div className={`block w-14 h-8 rounded-full transition-colors ${bloqueoActivo ? 'bg-green-500' : 'bg-yellow-500'}`}></div>
+                <div className={`dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition-transform ${bloqueoActivo ? 'transform translate-x-6' : ''}`}></div>
+              </div>
+              <div className="ml-4 flex-1">
+                <div className="font-bold text-gray-800">
+                  {bloqueoActivo ? '🔒 Regla Estricta (Bloquea 3 min antes)' : '🔓 Regla Flexible (Permite pronosticar juegos de hoy)'}
+                </div>
+                <div className="text-xs text-gray-500 mt-0.5">
+                  {bloqueoActivo ? 'Bloquea el pronóstico minutos antes de empezar el partido.' : 'Permite registrar cualquier partido programado para el día de hoy, sin importar la hora.'}
+                </div>
+              </div>
+            </label>
           </div>
           <div className="flex flex-col sm:flex-row gap-4 pt-2">
             <button onClick={guardarConfig} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-semibold transition-colors">Guardar Cambios</button>
