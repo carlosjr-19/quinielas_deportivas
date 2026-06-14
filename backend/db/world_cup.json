@@ -140,7 +140,13 @@
             "team1": "Brazil",
             "team2": "Morocco",
             "group": "Group C",
-            "ground": "New York/New Jersey (East Rutherford)"
+            "ground": "New York/New Jersey (East Rutherford)",
+            "score": {
+                "ft": [
+                    1,
+                    1
+                ]
+            }
         },
         {
             "round": "Matchday 3",
