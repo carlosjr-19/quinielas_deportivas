@@ -147,6 +147,8 @@ def actualizar_quiniela(codigo_acceso: str, quiniela_in: QuinielaUpdate, db: Ses
         quiniela.puntos_exacto = quiniela_in.puntos_exacto
     if quiniela_in.puntos_ganador is not None:
         quiniela.puntos_ganador = quiniela_in.puntos_ganador
+    if quiniela_in.bloqueo_activo is not None:
+        quiniela.bloqueo_activo = quiniela_in.bloqueo_activo
         
     db.commit()
     db.refresh(quiniela)

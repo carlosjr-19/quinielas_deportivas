@@ -61,6 +61,7 @@ class QuinielaBase(BaseModel):
     reglas: Optional[str] = None
     puntos_exacto: int = 3
     puntos_ganador: int = 1
+    bloqueo_activo: Optional[bool] = True
 
 class QuinielaCreate(QuinielaBase):
     creador_id: int
@@ -77,6 +78,7 @@ class QuinielaUpdate(BaseModel):
     reglas: Optional[str] = None
     puntos_exacto: Optional[int] = None
     puntos_ganador: Optional[int] = None
+    bloqueo_activo: Optional[bool] = None
 
 class PuntosUpdate(BaseModel):
     puntos: int

@@ -25,14 +25,31 @@ def registrar_pronostico(pronostico_in: PronosticoCreate, db: Session = Depends(
         if not partido:
             raise HTTPException(status_code=404, detail="Partido no encontrado")
             
-        # 2. Validar regla de los 3 minutos de bloqueo
-        limite_tiempo = partido.fecha - datetime.timedelta(minutes=3)
+        # 2. Validar regla de bloqueo
+        uq = db.query(UsuarioQuiniela).filter(UsuarioQuiniela.id == pronostico_in.usuario_quiniela_id).first()
+        if not uq:
+            raise HTTPException(status_code=404, detail="Usuario no pertenece a la quiniela")
+            
+        quiniela = db.query(Quiniela).filter(Quiniela.id == uq.quiniela_id).first()
+        bloqueo_activo = quiniela.bloqueo_activo if quiniela else True
         
-        if ahora_utc > limite_tiempo:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN, 
-                detail="El partido comienza en menos de 3 minutos o ya comenzó. No se permiten modificaciones."
-            )
+        if bloqueo_activo:
+            limite_tiempo = partido.fecha - datetime.timedelta(minutes=3)
+            if ahora_utc > limite_tiempo:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN, 
+                    detail="La quiniela está bloqueada. El partido comienza en menos de 3 minutos o ya comenzó."
+                )
+        else:
+            import zoneinfo
+            tz_mexico = zoneinfo.ZoneInfo("America/Mexico_City")
+            ahora_mexico_dt = datetime.datetime.now(tz_mexico)
+            partido_mexico_dt = partido.fecha.replace(tzinfo=datetime.timezone.utc).astimezone(tz_mexico)
+            if partido_mexico_dt.date() < ahora_mexico_dt.date():
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN, 
+                    detail="El partido es de un día anterior y ya está cerrado."
+                )
             
         # 3. Guardar o actualizar pronóstico (upsert)
         pronostico_existente = db.query(Pronostico).filter(
