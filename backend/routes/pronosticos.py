@@ -25,13 +25,13 @@ def registrar_pronostico(pronostico_in: PronosticoCreate, db: Session = Depends(
         if not partido:
             raise HTTPException(status_code=404, detail="Partido no encontrado")
             
-        # 2. Validar regla de los 10 minutos de bloqueo
-        limite_tiempo = partido.fecha - datetime.timedelta(minutes=10)
+        # 2. Validar regla de los 3 minutos de bloqueo
+        limite_tiempo = partido.fecha - datetime.timedelta(minutes=3)
         
-        if ahora_mexico > limite_tiempo:
+        if ahora_utc > limite_tiempo:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN, 
-                detail="El partido comienza en menos de 10 minutos o ya comenzó. No se permiten modificaciones."
+                detail="El partido comienza en menos de 3 minutos o ya comenzó. No se permiten modificaciones."
             )
             
         # 3. Guardar o actualizar pronóstico (upsert)
