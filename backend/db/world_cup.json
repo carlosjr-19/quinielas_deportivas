@@ -155,7 +155,13 @@
             "team1": "Haiti",
             "team2": "Scotland",
             "group": "Group C",
-            "ground": "Boston (Foxborough)"
+            "ground": "Boston (Foxborough)",
+            "score": {
+                "ft": [
+                    0,
+                    1
+                ]
+            }
         },
         {
             "round": "Matchday 9",
