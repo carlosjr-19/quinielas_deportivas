@@ -232,15 +232,20 @@ const ModalAñadirPronostico = ({ partidos, miRegistro, onClose, onGuardado, mis
   };
 
   const isLocked = (fechaStr) => {
+    let tzDateStr = fechaStr.replace(' ', 'T');
+    if (!tzDateStr.includes('Z') && !tzDateStr.includes('+') && tzDateStr.split('T')[1] && !tzDateStr.split('T')[1].includes('-')) {
+      tzDateStr += '-06:00';
+    }
+
     if (quiniela && quiniela.bloqueo_activo === false) {
-       const matchDate = new Date(fechaStr);
+       const matchDate = new Date(tzDateStr);
        const today = new Date();
        if (matchDate.getFullYear() < today.getFullYear()) return true;
        if (matchDate.getFullYear() === today.getFullYear() && matchDate.getMonth() < today.getMonth()) return true;
        if (matchDate.getFullYear() === today.getFullYear() && matchDate.getMonth() === today.getMonth() && matchDate.getDate() < today.getDate()) return true;
        return false;
     }
-    const matchTime = new Date(fechaStr).getTime();
+    const matchTime = new Date(tzDateStr).getTime();
     return Date.now() > (matchTime - 180000); // 3 minutos
   };
 
