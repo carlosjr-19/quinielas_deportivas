@@ -221,7 +221,13 @@
             "team1": "Australia",
             "team2": "Turkey",
             "group": "Group D",
-            "ground": "Vancouver"
+            "ground": "Vancouver",
+            "score": {
+                "ft": [
+                    2,
+                    0
+                ]
+            }
         },
         {
             "round": "Matchday 9",
