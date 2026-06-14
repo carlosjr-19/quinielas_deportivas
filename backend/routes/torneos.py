@@ -59,6 +59,14 @@ def sincronizar_torneos(db: Session = Depends(get_db)):
         fecha_str = f"{p.get('date')} {p.get('time').split(' ')[0]}"
         try:
             fecha_dt = datetime.strptime(fecha_str, "%Y-%m-%d %H:%M")
+            # Parse UTC offset to convert to UTC
+            import re
+            from datetime import timedelta
+            time_full = p.get('time', '')
+            match = re.search(r"UTC([+-]\d+)", time_full)
+            if match:
+                offset_hours = int(match.group(1))
+                fecha_dt = fecha_dt - timedelta(hours=offset_hours)
         except:
             fecha_dt = datetime.utcnow()
             
@@ -169,64 +177,74 @@ def obtener_estadisticas(torneo_id: str):
     
     # Init grupos
     for p in partidos_json:
+        t1 = p.get("team1", "")
+        t2 = p.get("team2", "")
         grupo = p.get("group")
-        if not grupo: continue
-        
-        t1 = p.get("team1")
-        t2 = p.get("team2")
-        
-        # Ignorar placeholders como 1A, 2B, etc en rondas eliminatorias
-        if len(t1) <= 2 or len(t2) <= 2 or "/" in t1:
-            pass # No los metemos a los grupos si son placeholders
-            
-        if grupo not in grupos:
-            grupos[grupo] = {}
-        if t1 not in grupos[grupo] and len(t1) > 2 and "/" not in t1:
-            grupos[grupo][t1] = {"equipo": t1, "PJ": 0, "PG": 0, "PE": 0, "PP": 0, "GF": 0, "GC": 0, "DG": 0, "Pts": 0}
-        if t2 not in grupos[grupo] and len(t2) > 2 and "/" not in t2:
-            grupos[grupo][t2] = {"equipo": t2, "PJ": 0, "PG": 0, "PE": 0, "PP": 0, "GF": 0, "GC": 0, "DG": 0, "Pts": 0}
-            
         score = p.get("score")
+        
+        # Procesar fase de grupos
+        if grupo:
+            if grupo not in grupos:
+                grupos[grupo] = {}
+            if len(t1) > 2 and "/" not in t1 and t1 not in grupos[grupo]:
+                grupos[grupo][t1] = {"equipo": t1, "PJ": 0, "PG": 0, "PE": 0, "PP": 0, "GF": 0, "GC": 0, "DG": 0, "Pts": 0}
+            if len(t2) > 2 and "/" not in t2 and t2 not in grupos[grupo]:
+                grupos[grupo][t2] = {"equipo": t2, "PJ": 0, "PG": 0, "PE": 0, "PP": 0, "GF": 0, "GC": 0, "DG": 0, "Pts": 0}
+                
+            if score and "ft" in score:
+                gl = score["ft"][0]
+                gv = score["ft"][1]
+                
+                # Solo actualizar tabla si es un equipo real de grupo
+                if t1 in grupos[grupo] and t2 in grupos[grupo]:
+                    grupos[grupo][t1]["PJ"] += 1
+                    grupos[grupo][t1]["GF"] += gl
+                    grupos[grupo][t1]["GC"] += gv
+                    grupos[grupo][t1]["DG"] += (gl - gv)
+                    
+                    grupos[grupo][t2]["PJ"] += 1
+                    grupos[grupo][t2]["GF"] += gv
+                    grupos[grupo][t2]["GC"] += gl
+                    grupos[grupo][t2]["DG"] += (gv - gl)
+                    
+                    if gl > gv:
+                        grupos[grupo][t1]["PG"] += 1
+                        grupos[grupo][t1]["Pts"] += 3
+                        grupos[grupo][t2]["PP"] += 1
+                    elif gl < gv:
+                        grupos[grupo][t2]["PG"] += 1
+                        grupos[grupo][t2]["Pts"] += 3
+                        grupos[grupo][t1]["PP"] += 1
+                    else:
+                        grupos[grupo][t1]["PE"] += 1
+                        grupos[grupo][t2]["PE"] += 1
+                        grupos[grupo][t1]["Pts"] += 1
+                        grupos[grupo][t2]["Pts"] += 1
+                        
+        # Agregar a últimos resultados (sean de grupo o eliminatoria)
         if score and "ft" in score:
             gl = score["ft"][0]
             gv = score["ft"][1]
-            
-            # Solo actualizar tabla si es un equipo real de grupo
-            if t1 in grupos[grupo] and t2 in grupos[grupo]:
-                grupos[grupo][t1]["PJ"] += 1
-                grupos[grupo][t1]["GF"] += gl
-                grupos[grupo][t1]["GC"] += gv
-                grupos[grupo][t1]["DG"] += (gl - gv)
-                
-                grupos[grupo][t2]["PJ"] += 1
-                grupos[grupo][t2]["GF"] += gv
-                grupos[grupo][t2]["GC"] += gl
-                grupos[grupo][t2]["DG"] += (gv - gl)
-                
-                if gl > gv:
-                    grupos[grupo][t1]["PG"] += 1
-                    grupos[grupo][t1]["Pts"] += 3
-                    grupos[grupo][t2]["PP"] += 1
-                elif gl < gv:
-                    grupos[grupo][t2]["PG"] += 1
-                    grupos[grupo][t2]["Pts"] += 3
-                    grupos[grupo][t1]["PP"] += 1
-                else:
-                    grupos[grupo][t1]["PE"] += 1
-                    grupos[grupo][t2]["PE"] += 1
-                    grupos[grupo][t1]["Pts"] += 1
-                    grupos[grupo][t2]["Pts"] += 1
-                    
-            # Agregar a últimos resultados (sean de grupo o eliminatoria)
-            # Solo equipos que parezcan reales o que ya hayan jugado
-            ultimos_resultados.append({
-                "equipo_local": t1,
-                "equipo_visitante": t2,
-                "goles_local": gl,
-                "goles_visitante": gv,
-                "fecha": p.get("date"),
-                "ronda": p.get("round", "")
-            })
+            # Solo equipos que parezcan reales
+            if len(t1) > 2 and "/" not in t1 and len(t2) > 2 and "/" not in t2:
+                fecha_str = f"{p.get('date', '')} {p.get('time', '').split(' ')[0]}".strip()
+                try:
+                    fecha_dt = datetime.strptime(fecha_str, "%Y-%m-%d %H:%M")
+                except:
+                    try:
+                        fecha_dt = datetime.strptime(p.get('date', ''), "%Y-%m-%d")
+                    except:
+                        fecha_dt = datetime.min
+                        
+                ultimos_resultados.append({
+                    "equipo_local": t1,
+                    "equipo_visitante": t2,
+                    "goles_local": gl,
+                    "goles_visitante": gv,
+                    "fecha": p.get("date"),
+                    "ronda": p.get("round", ""),
+                    "_fecha_dt": fecha_dt
+                })
             
     # Ordenar equipos en grupos (Pts, DG, GF)
     grupos_ordenados = []
@@ -240,9 +258,12 @@ def obtener_estadisticas(torneo_id: str):
         
     grupos_ordenados.sort(key=lambda x: x["nombre"])
     
-    # Últimos 4 resultados procesados (asumimos orden cronológico, los últimos son los más recientes si tienen score)
-    # Revertimos para tener los más recientes primero
-    ultimos_resultados.reverse()
+    # Ordenar resultados cronológicamente (más recientes primero)
+    ultimos_resultados.sort(key=lambda x: x.get("_fecha_dt", datetime.min), reverse=True)
+    # Limpiar clave de ordenación
+    for r in ultimos_resultados:
+        r.pop("_fecha_dt", None)
+        
     ultimos_resultados = ultimos_resultados[:4]
     
     # Extraer fases eliminatorias
