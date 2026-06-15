@@ -75,6 +75,11 @@ def registrar_pronostico(pronostico_in: PronosticoCreate, db: Session = Depends(
                 db.add(evento)
                 db.commit()
                 
+            if partido.estado == "FINALIZADO":
+                from routes.partidos import calcular_puntos_partido
+                calcular_puntos_partido(db, partido)
+                db.refresh(pronostico_existente)
+                
             return pronostico_existente
         else:
             # Si es la primera vez que predice este partido
@@ -99,6 +104,11 @@ def registrar_pronostico(pronostico_in: PronosticoCreate, db: Session = Depends(
                 )
                 db.add(evento)
                 db.commit()
+                
+            if partido.estado == "FINALIZADO":
+                from routes.partidos import calcular_puntos_partido
+                calcular_puntos_partido(db, partido)
+                db.refresh(nuevo_pronostico)
                 
             return nuevo_pronostico
     else:
@@ -225,7 +235,9 @@ def actualizar_puntos(pronostico_id: int, puntos_update: PronosticoPuntosUpdate,
     if puntos_update.puntos < 0 or puntos_update.puntos > 5:
         raise HTTPException(status_code=400, detail="Los puntos deben estar entre 0 y 5")
         
-    pronostico.puntos_obtenidos = puntos_update.puntos
+    puntos_actuales = pronostico.puntos_obtenidos if pronostico.puntos_obtenidos is not None else 0
+    diferencia = puntos_update.puntos - puntos_actuales
+    
     pronostico.puntos_obtenidos = puntos_update.puntos
     db.commit()
     
@@ -246,19 +258,12 @@ def actualizar_puntos(pronostico_id: int, puntos_update: PronosticoPuntosUpdate,
             contenido=f"{nombre_usr} ha recibido {puntos_update.puntos} puntos por el pronóstico de {partido_nombre}"
         )
         db.add(evento)
-        db.commit()
-
-    # Recalcular total del usuario
-    total_puntos = db.query(func.sum(Pronostico.puntos_obtenidos))\
-        .filter(Pronostico.usuario_quiniela_id == pronostico.usuario_quiniela_id)\
-        .scalar() or 0
         
-    usuario_quiniela = db.query(UsuarioQuiniela).filter(UsuarioQuiniela.id == pronostico.usuario_quiniela_id).first()
-    if usuario_quiniela:
-        usuario_quiniela.puntos_totales = total_puntos
+        # Update total del usuario
+        uq.puntos_totales += diferencia
         db.commit()
         
-    return {"message": "Puntos actualizados correctamente", "puntos_totales": total_puntos}
+    return {"message": "Puntos actualizados correctamente", "puntos_totales": uq.puntos_totales if uq else 0}
 
 @router.delete("/{pronostico_id}")
 def eliminar_pronostico(pronostico_id: int, db: Session = Depends(get_db)):
@@ -266,6 +271,7 @@ def eliminar_pronostico(pronostico_id: int, db: Session = Depends(get_db)):
     if not pronostico:
         raise HTTPException(status_code=404, detail="Pronóstico no encontrado")
         
+    puntos_actuales = pronostico.puntos_obtenidos if pronostico.puntos_obtenidos is not None else 0
     usuario_quiniela_id = pronostico.usuario_quiniela_id
     
     uq = db.query(UsuarioQuiniela).filter(UsuarioQuiniela.id == pronostico.usuario_quiniela_id).first()
@@ -285,21 +291,14 @@ def eliminar_pronostico(pronostico_id: int, db: Session = Depends(get_db)):
             contenido=f"{nombre_usr} ha eliminado el pronóstico de {partido_nombre}"
         )
         db.add(evento)
-        # No hacemos commit aún, lo haremos junto con el delete
     
     db.delete(pronostico)
+    
+    if uq:
+        uq.puntos_totales -= puntos_actuales
+        
     db.commit()
     
-    # Recalcular total del usuario
-    total_puntos = db.query(func.sum(Pronostico.puntos_obtenidos))\
-        .filter(Pronostico.usuario_quiniela_id == usuario_quiniela_id)\
-        .scalar() or 0
-        
-    usuario_quiniela = db.query(UsuarioQuiniela).filter(UsuarioQuiniela.id == usuario_quiniela_id).first()
-    if usuario_quiniela:
-        usuario_quiniela.puntos_totales = total_puntos
-        db.commit()
-        
     return {"message": "Pronóstico eliminado"}
 
 @router.get("/quiniela/{codigo_acceso}/todas")
