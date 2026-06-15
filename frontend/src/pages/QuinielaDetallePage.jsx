@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getTeamFlagUrl } from '../utils/helpers';
-
+import ModalVerPronosticosUsuario from '../components/ModalVerPronosticosUsuario';
 const QuinielaDetallePage = () => {
   const { codigo } = useParams();
   const navigate = useNavigate();
@@ -192,7 +192,7 @@ const QuinielaDetallePage = () => {
       <div className="max-w-4xl mx-auto pb-12">
         <div className="bg-white rounded-lg shadow-md p-6">
           {activeTab === 'pronosticos' && <TabPronosticos partidos={partidos} miRegistro={miRegistro} recargar={cargarDatos} miPosicion={miPosicion} quiniela={quiniela} />}
-          {activeTab === 'posiciones' && <TabPosiciones miembros={miembros} quiniela={quiniela} />}
+          {activeTab === 'posiciones' && <TabPosiciones miembros={miembros} quiniela={quiniela} getTeamFlagUrl={getTeamFlagUrl} />}
           {activeTab === 'feed' && <TabFeed feed={feed} miRegistro={miRegistro} recargar={cargarDatos} quiniela={quiniela} />}
           {activeTab === 'partidos' && <TabPartidos quiniela={quiniela} miRegistro={miRegistro} recargar={cargarDatos} />}
           {activeTab === 'reglas' && <TabReglas reglas={quiniela.reglas} />}
@@ -677,7 +677,9 @@ const TabPronosticos = ({ partidos, miRegistro, recargar, miPosicion, quiniela }
   );
 };
 
-const TabPosiciones = ({ miembros, quiniela }) => {
+const TabPosiciones = ({ miembros, quiniela, getTeamFlagUrl }) => {
+  const [selectedUsuario, setSelectedUsuario] = useState(null);
+  
   const compartirWhatsApp = () => {
     if (!miembros || miembros.length === 0) return;
     
@@ -716,11 +718,19 @@ const TabPosiciones = ({ miembros, quiniela }) => {
           </thead>
           <tbody className="divide-y divide-gray-200">
             {miembros.map((m, idx) => (
-              <tr key={m.usuario_quiniela_id} className="hover:bg-gray-50">
+              <tr key={m.usuario_quiniela_id} className="hover:bg-gray-50 transition-colors">
                 <td className="py-3 px-4 font-bold text-gray-500">{idx + 1}</td>
-                <td className="py-3 px-4 font-semibold">
+                <td 
+                  className="py-3 px-4 font-semibold cursor-pointer hover:text-[#1c803c]"
+                  onClick={() => setSelectedUsuario({ 
+                    usuario_quiniela_id: m.usuario_quiniela_id, 
+                    nombre: m.nombre, 
+                    puntos_totales: m.puntos_totales 
+                  })}
+                  title="Ver pronósticos"
+                >
                   {idx === 0 && <span className="mr-1" title="Primer lugar">👑</span>}
-                  {m.nombre} 
+                  <span className="border-b border-transparent hover:border-[#1c803c] transition-colors">{m.nombre}</span> 
                   {m.rol === 'admin' && <span className="ml-2 text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">Admin</span>}
                   {m.rol === 'socio' && <span className="ml-2 text-xs bg-purple-100 text-purple-800 px-2 py-0.5 rounded-full">Socio</span>}
                 </td>
@@ -735,6 +745,14 @@ const TabPosiciones = ({ miembros, quiniela }) => {
           </tbody>
         </table>
       </div>
+
+      {selectedUsuario && (
+        <ModalVerPronosticosUsuario 
+          usuario={selectedUsuario} 
+          onClose={() => setSelectedUsuario(null)} 
+          getTeamFlagUrl={getTeamFlagUrl}
+        />
+      )}
     </div>
   );
 };
