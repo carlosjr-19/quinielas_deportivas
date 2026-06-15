@@ -1,0 +1,24 @@
+REGLAS DE PUNTUACIÓN - FASES ELIMINATORIAS (A PARTIR DE 16VOS DE FINAL)
+
+A partir de los 16vos de final, la distribución de puntos cambia debido a que los partidos no pueden terminar en un empate definitivo (siempre debe haber un equipo que avance a la siguiente ronda). 
+
+La nueva estructura de puntos funciona de la siguiente manera:
+
+1. 4 PUNTOS (Puntuación Perfecta de Empate)
+Se otorgan si el usuario pronostica el resultado EXACTO de un empate (ej. 1 a 1), el partido termina exactamente en ese marcador (1 a 1), y además el usuario ACIERTA correctamente qué equipo avanza a la siguiente ronda.
+
+2. 3 PUNTOS (Acierto Exacto)
+Se otorgan en dos casos:
+- Si el usuario pronostica el resultado EXACTO de un partido que NO ES EMPATE (ej. 2 a 1) y el partido termina exactamente así.
+- Si el usuario pronostica el resultado EXACTO de un empate (ej. 1 a 1), el partido termina 1 a 1, pero el usuario FALLA al elegir qué equipo avanza.
+
+3. 2 PUNTOS (Empate Parcial + Avanza)
+Se otorgan si el usuario pronostica que habrá un empate con un marcador distinto al real (ej. pronostica 1 a 1 pero el partido queda 2 a 2), pero ACIERTA correctamente el equipo que avanza.
+
+4. 1 PUNTO (Acierto de Avanza o Ganador)
+Se otorgan en dos casos:
+- Si el usuario falla completamente en el resultado (ej. pronostica que gana un equipo pero quedan empate), pero ACIERTA correctamente qué equipo avanza.
+- Si el usuario acierta quién gana el partido (sin llegar a penales), pero falla en el marcador exacto (ej. pronostica 2 a 0 y el partido termina 3 a 1).
+
+5. 0 PUNTOS (Fallo Total)
+El usuario no acierta ni el resultado, ni la tendencia (quién gana/empata), ni qué equipo avanza.

@@ -82,8 +82,15 @@ const ModalVerPronosticosUsuario = ({ usuario, onClose, getTeamFlagUrl }) => {
                         <span className="text-sm font-bold text-gray-700 truncate w-full text-center">{p.equipo_local}</span>
                       </div>
                       
-                      <div className="px-4 py-2 bg-white rounded-md border-2 border-gray-200 shadow-sm mx-2 shrink-0">
-                        <span className="text-xl font-black text-gray-800 tracking-widest">{p.goles_local}-{p.goles_visitante}</span>
+                      <div className="flex flex-col items-center mx-2 shrink-0">
+                        <div className="px-4 py-2 bg-white rounded-md border-2 border-gray-200 shadow-sm">
+                          <span className="text-xl font-black text-gray-800 tracking-widest">{p.goles_local}-{p.goles_visitante}</span>
+                        </div>
+                        {p.avanza && (
+                          <span className="mt-2 text-[10px] font-bold bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full uppercase">
+                            Avanza {p.avanza}
+                          </span>
+                        )}
                       </div>
                       
                       <div className="flex flex-col items-center flex-1 min-w-0">
@@ -101,6 +108,11 @@ const ModalVerPronosticosUsuario = ({ usuario, onClose, getTeamFlagUrl }) => {
                     <div className="mt-3 text-center bg-green-50 p-2 rounded-lg border border-green-100">
                       <p className="text-[10px] font-bold text-green-700 uppercase tracking-widest mb-1">Resultado Final</p>
                       <p className="text-sm font-black text-gray-800 tracking-wider">{p.goles_local_real} - {p.goles_visitante_real}</p>
+                      {p.avanza_real && (
+                        <p className="mt-1 text-[10px] font-bold text-green-700 uppercase">
+                          Avanzó {p.avanza_real}
+                        </p>
+                      )}
                     </div>
                   )}
                 </div>

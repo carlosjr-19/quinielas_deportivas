@@ -13,6 +13,7 @@ class Pronostico(Base):
     goles_visitante = Column(Integer, nullable=True)
     texto_libre = Column(String, nullable=True)
     puntos_obtenidos = Column(Integer, default=0) 
+    avanza = Column(String, nullable=True)
     insertado_a = Column(DateTime, default=datetime.datetime.utcnow) 
     
     usuario_quiniela = relationship("UsuarioQuiniela", back_populates="pronosticos")

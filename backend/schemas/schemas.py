@@ -23,10 +23,13 @@ class PartidoBase(BaseModel):
     estado: str = "PENDIENTE"
     goles_local_real: Optional[int] = None
     goles_visitante_real: Optional[int] = None
+    fase: Optional[str] = None
+    avanza_real: Optional[str] = None
 
 class ResultadoPartidoUpdate(BaseModel):
     goles_local_real: int
     goles_visitante_real: int
+    avanza_real: Optional[str] = None
 
 class PartidoCreate(PartidoBase):
     torneo_id: str
@@ -124,6 +127,7 @@ class PronosticoBase(BaseModel):
     goles_local: Optional[int] = None
     goles_visitante: Optional[int] = None
     texto_libre: Optional[str] = None
+    avanza: Optional[str] = None
 
 class PronosticoCreate(PronosticoBase):
     usuario_quiniela_id: int
