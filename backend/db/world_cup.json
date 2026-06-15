@@ -272,7 +272,13 @@
             "team1": "Germany",
             "team2": "Curaçao",
             "group": "Group E",
-            "ground": "Houston"
+            "ground": "Houston",
+            "score": {
+                "ft": [
+                    7,
+                    1
+                ]
+            }
         },
         {
             "round": "Matchday 4",
@@ -281,7 +287,13 @@
             "team1": "Ivory Coast",
             "team2": "Ecuador",
             "group": "Group E",
-            "ground": "Philadelphia"
+            "ground": "Philadelphia",
+            "score": {
+                "ft": [
+                    1,
+                    0
+                ]
+            }
         },
         {
             "round": "Matchday 10",
