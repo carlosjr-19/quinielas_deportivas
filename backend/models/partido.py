@@ -14,6 +14,8 @@ class Partido(Base):
     estado = Column(String, default="PENDIENTE") # PENDIENTE, EN_CURSO, FINALIZADO
     goles_local_real = Column(Integer, nullable=True)
     goles_visitante_real = Column(Integer, nullable=True)
+    fase = Column(String, nullable=True)
+    avanza_real = Column(String, nullable=True)
     
     torneo = relationship("Torneo", back_populates="partidos")
     pronosticos = relationship("Pronostico", back_populates="partido")

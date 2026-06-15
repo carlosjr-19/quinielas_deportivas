@@ -46,6 +46,16 @@ def calcular_puntos_partido(db: Session, partido: Partido):
     gana_local_real = partido.goles_local_real > partido.goles_visitante_real
     gana_visitante_real = partido.goles_local_real < partido.goles_visitante_real
     
+    rondas_eliminatorias = ["Round of 32", "Round of 16", "Quarter-final", "Semi-final", "Match for third place", "Final"]
+    es_eliminatoria = partido.fase in rondas_eliminatorias
+    
+    avanza_real = partido.avanza_real
+    if es_eliminatoria:
+        if gana_local_real:
+            avanza_real = partido.equipo_local
+        elif gana_visitante_real:
+            avanza_real = partido.equipo_visitante
+
     # Procesar pronósticos
     from models.pronostico import Pronostico
     from models.usuario_quiniela import UsuarioQuiniela
@@ -67,16 +77,37 @@ def calcular_puntos_partido(db: Session, partido: Partido):
         
         pts_obtenidos = 0
         if pronostico.goles_local is not None and pronostico.goles_visitante is not None:
-            # Coincidencia exacta
-            if pronostico.goles_local == partido.goles_local_real and pronostico.goles_visitante == partido.goles_visitante_real:
-                pts_obtenidos = puntos_exacto
-            else:
-                # Coincidencia de ganador o empate
-                empate_pron = pronostico.goles_local == pronostico.goles_visitante
-                gana_local_pron = pronostico.goles_local > pronostico.goles_visitante
-                gana_visitante_pron = pronostico.goles_local < pronostico.goles_visitante
+            empate_pron = pronostico.goles_local == pronostico.goles_visitante
+            gana_local_pron = pronostico.goles_local > pronostico.goles_visitante
+            gana_visitante_pron = pronostico.goles_local < pronostico.goles_visitante
+            resultado_exacto = (pronostico.goles_local == partido.goles_local_real and pronostico.goles_visitante == partido.goles_visitante_real)
+            
+            if es_eliminatoria:
+                avanza_pron = pronostico.avanza
+                if gana_local_pron:
+                    avanza_pron = partido.equipo_local
+                elif gana_visitante_pron:
+                    avanza_pron = partido.equipo_visitante
+                    
+                avanza_correcto = (avanza_pron == avanza_real) and avanza_real is not None
                 
-                if (empate_real and empate_pron) or (gana_local_real and gana_local_pron) or (gana_visitante_real and gana_visitante_pron):
+                if empate_real and empate_pron:
+                    if resultado_exacto:
+                        pts_obtenidos = 4 if avanza_correcto else 3
+                    else:
+                        pts_obtenidos = 2 if avanza_correcto else 1
+                else:
+                    if resultado_exacto:
+                        pts_obtenidos = 3
+                    elif avanza_correcto:
+                        pts_obtenidos = 1
+                    else:
+                        pts_obtenidos = 0
+            else:
+                # Lógica original para fase de grupos
+                if resultado_exacto:
+                    pts_obtenidos = puntos_exacto
+                elif (empate_real and empate_pron) or (gana_local_real and gana_local_pron) or (gana_visitante_real and gana_visitante_pron):
                     pts_obtenidos = puntos_ganador
                     
         # Actualizar los puntos
@@ -101,6 +132,7 @@ def actualizar_resultado_partido(partido_id: str, resultado: schemas.ResultadoPa
         
     partido.goles_local_real = resultado.goles_local_real
     partido.goles_visitante_real = resultado.goles_visitante_real
+    partido.avanza_real = resultado.avanza_real
     partido.estado = "FINALIZADO"
     db.commit()
     

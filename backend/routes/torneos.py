@@ -87,6 +87,7 @@ def sincronizar_torneos(db: Session = Depends(get_db)):
             existente.fecha = fecha_dt
             existente.equipo_local = p.get("team1")
             existente.equipo_visitante = p.get("team2")
+            existente.fase = ronda
             
             # Si en el JSON dice que terminó, pero en la BD no, o si el resultado cambió
             if estado_nuevo == "FINALIZADO" and (existente.estado != "FINALIZADO" or existente.goles_local_real != goles_local or existente.goles_visitante_real != goles_visitante):
@@ -108,7 +109,8 @@ def sincronizar_torneos(db: Session = Depends(get_db)):
                 fecha=fecha_dt,
                 estado=estado_nuevo,
                 goles_local_real=goles_local,
-                goles_visitante_real=goles_visitante
+                goles_visitante_real=goles_visitante,
+                fase=ronda
             )
             db.add(nuevo_partido)
             if estado_nuevo == "FINALIZADO":

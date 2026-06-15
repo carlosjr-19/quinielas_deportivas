@@ -215,7 +215,7 @@ const ModalAñadirPronostico = ({ partidos, miRegistro, onClose, onGuardado, mis
     const loadedPreds = {};
     if (Array.isArray(misPronosticosActuales)) {
       misPronosticosActuales.forEach(p => {
-        loadedPreds[p.partido_id] = { local: p.goles_local, visitante: p.goles_visitante };
+        loadedPreds[p.partido_id] = { local: p.goles_local, visitante: p.goles_visitante, avanza: p.avanza };
       });
       setPredicciones(loadedPreds);
     }
@@ -227,6 +227,16 @@ const ModalAñadirPronostico = ({ partidos, miRegistro, onClose, onGuardado, mis
       [partidoId]: {
         ...prev[partidoId],
         [isLocal ? 'local' : 'visitante']: value
+      }
+    }));
+  };
+
+  const handleAvanzaChange = (partidoId, teamName) => {
+    setPredicciones(prev => ({
+      ...prev,
+      [partidoId]: {
+        ...prev[partidoId],
+        avanza: teamName
       }
     }));
   };
@@ -249,9 +259,10 @@ const ModalAñadirPronostico = ({ partidos, miRegistro, onClose, onGuardado, mis
     return Date.now() > (matchTime - 180000); // 3 minutos
   };
 
-  const guardarPronostico = async (partidoId, localScore, visitanteScore) => {
+  const guardarPronostico = async (partidoId, localScore, visitanteScore, avanzaValue = null) => {
     let finalLocal = localScore;
     let finalVisitante = visitanteScore;
+    let finalAvanza = avanzaValue;
     
     if (finalLocal === undefined || finalVisitante === undefined) {
       const pred = predicciones[partidoId];
@@ -261,6 +272,7 @@ const ModalAñadirPronostico = ({ partidos, miRegistro, onClose, onGuardado, mis
       }
       finalLocal = pred.local;
       finalVisitante = pred.visitante;
+      finalAvanza = pred.avanza;
     }
     
     setGuardando(true);
@@ -274,6 +286,7 @@ const ModalAñadirPronostico = ({ partidos, miRegistro, onClose, onGuardado, mis
           partido_id: partidoId,
           goles_local: parseInt(finalLocal),
           goles_visitante: parseInt(finalVisitante),
+          avanza: finalAvanza,
           usuario_quiniela_id: miRegistro.usuario_quiniela_id
         })
       });
@@ -284,7 +297,7 @@ const ModalAñadirPronostico = ({ partidos, miRegistro, onClose, onGuardado, mis
       setMensaje({ text: `Pronóstico guardado con éxito`, type: 'success' });
       setPredicciones(prev => ({
         ...prev,
-        [partidoId]: { local: finalLocal, visitante: finalVisitante }
+        [partidoId]: { local: finalLocal, visitante: finalVisitante, avanza: finalAvanza }
       }));
       onGuardado();
     } catch (err) {
@@ -332,7 +345,12 @@ const ModalAñadirPronostico = ({ partidos, miRegistro, onClose, onGuardado, mis
       const p = predicciones[partidoId];
       if (p.local !== undefined && p.visitante !== undefined && p.local !== '' && p.visitante !== '') {
         const original = Array.isArray(misPronosticosActuales) ? misPronosticosActuales.find(x => x.partido_id === partidoId) : null;
-        const isDifferent = !original || original.goles_local != p.local || original.goles_visitante != p.visitante;
+        
+        let isDifferent = !original || original.goles_local != p.local || original.goles_visitante != p.visitante;
+        if (original && original.avanza !== (p.avanza || null) && original.avanza !== p.avanza) {
+            isDifferent = true;
+        }
+
         if (isDifferent) {
           const partido = partidos.find(x => x.id === partidoId);
           if (partido && !isLocked(partido.fecha)) {
@@ -357,7 +375,17 @@ const ModalAñadirPronostico = ({ partidos, miRegistro, onClose, onGuardado, mis
     let errors = 0;
     
     for (const partidoId of mods) {
-      const { local, visitante } = predicciones[partidoId];
+      const { local, visitante, avanza } = predicciones[partidoId];
+      const pData = partidos.find(p => p.id === partidoId);
+      const rondas_eliminatorias = ["Round of 32", "Round of 16", "Quarter-final", "Semi-final", "Match for third place", "Final"];
+      const isEliminatoria = pData && rondas_eliminatorias.includes(pData.fase);
+      const isEmpate = local == visitante;
+      
+      if (isEliminatoria && isEmpate && !avanza) {
+        errors++;
+        continue; // No guarda si falta quien avanza
+      }
+
       try {
         const res = await fetch('/api/pronosticos/', {
           method: 'POST',
@@ -366,6 +394,7 @@ const ModalAñadirPronostico = ({ partidos, miRegistro, onClose, onGuardado, mis
             partido_id: partidoId,
             goles_local: parseInt(local),
             goles_visitante: parseInt(visitante),
+            avanza: avanza,
             usuario_quiniela_id: miRegistro.usuario_quiniela_id
           })
         });
@@ -505,6 +534,39 @@ const ModalAñadirPronostico = ({ partidos, miRegistro, onClose, onGuardado, mis
                             </div>
                           </div>
                           
+                          {(() => {
+                            const pred = predicciones[p.id] || {};
+                            const local = pred.local;
+                            const visitante = pred.visitante;
+                            const rondas_eliminatorias = ["Round of 32", "Round of 16", "Quarter-final", "Semi-final", "Match for third place", "Final"];
+                            const isEliminatoria = p.fase && rondas_eliminatorias.includes(p.fase);
+                            
+                            if (isEliminatoria && local !== undefined && visitante !== undefined && local !== '' && visitante !== '' && local == visitante) {
+                              return (
+                                <div className="w-full max-w-sm mt-3 bg-blue-50 p-3 rounded-lg border border-blue-200">
+                                  <p className="text-xs text-blue-800 font-bold mb-2 text-center uppercase tracking-wide">Selecciona quién avanza</p>
+                                  <div className="flex gap-2 justify-center">
+                                    <button
+                                      disabled={locked}
+                                      onClick={() => handleAvanzaChange(p.id, p.equipo_local)}
+                                      className={`flex-1 py-2 px-3 rounded-md text-sm font-bold transition-all ${pred.avanza === p.equipo_local ? 'bg-blue-600 text-white shadow-md' : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'} ${locked && 'opacity-50 cursor-not-allowed'}`}
+                                    >
+                                      {p.equipo_local}
+                                    </button>
+                                    <button
+                                      disabled={locked}
+                                      onClick={() => handleAvanzaChange(p.id, p.equipo_visitante)}
+                                      className={`flex-1 py-2 px-3 rounded-md text-sm font-bold transition-all ${pred.avanza === p.equipo_visitante ? 'bg-blue-600 text-white shadow-md' : 'bg-white text-gray-700 border border-gray-300 hover:bg-gray-50'} ${locked && 'opacity-50 cursor-not-allowed'}`}
+                                    >
+                                      {p.equipo_visitante}
+                                    </button>
+                                  </div>
+                                </div>
+                              );
+                            }
+                            return null;
+                          })()}
+                          
                           {locked && (
                             <div className="w-[140px] mt-2">
                               <span className="text-xs font-bold text-red-600 bg-red-50 px-3 py-2 w-full rounded-md border border-red-100 uppercase tracking-wide flex items-center justify-center gap-1">
@@ -625,8 +687,15 @@ const TabPronosticos = ({ partidos, miRegistro, recargar, miPosicion, quiniela }
                     <span className="text-sm font-bold text-gray-700 truncate w-full text-center">{p.equipo_local}</span>
                   </div>
                   
-                  <div className="px-4 py-2 bg-white rounded-md border-2 border-gray-200 shadow-sm mx-2 shrink-0">
-                    <span className="text-xl font-black text-gray-800 tracking-widest">{p.goles_local}-{p.goles_visitante}</span>
+                  <div className="flex flex-col items-center mx-2 shrink-0">
+                    <div className="px-4 py-2 bg-white rounded-md border-2 border-gray-200 shadow-sm">
+                      <span className="text-xl font-black text-gray-800 tracking-widest">{p.goles_local}-{p.goles_visitante}</span>
+                    </div>
+                    {p.avanza && (
+                      <span className="mt-2 text-[10px] font-bold bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full uppercase">
+                        Avanza {p.avanza}
+                      </span>
+                    )}
                   </div>
                   
                   <div className="flex flex-col items-center flex-1 min-w-0">
@@ -644,6 +713,11 @@ const TabPronosticos = ({ partidos, miRegistro, recargar, miPosicion, quiniela }
                 <div className="mt-3 text-center bg-green-50 p-2 rounded-lg border border-green-100">
                   <p className="text-[10px] font-bold text-green-700 uppercase tracking-widest mb-1">Resultado Final</p>
                   <p className="text-sm font-black text-gray-800 tracking-wider">{p.goles_local_real} - {p.goles_visitante_real}</p>
+                  {p.avanza_real && (
+                    <p className="mt-1 text-[10px] font-bold text-green-700 uppercase">
+                      Avanzó {p.avanza_real}
+                    </p>
+                  )}
                 </div>
               )}
             </div>
@@ -1107,6 +1181,7 @@ const TabAdmin = ({ quiniela, miembros, reload, miRegistro, eliminarQuiniela, pa
   const finalizarPartido = async (partidoId) => {
     const inputLocal = document.getElementById(`local-${partidoId}`);
     const inputVisitante = document.getElementById(`visitante-${partidoId}`);
+    const selectAvanza = document.getElementById(`avanza-${partidoId}`);
     
     if (!inputLocal || !inputVisitante) return;
     
@@ -1118,13 +1193,23 @@ const TabAdmin = ({ quiniela, miembros, reload, miRegistro, eliminarQuiniela, pa
       return;
     }
     
+    let avanza_real = null;
+    if (selectAvanza) {
+        avanza_real = selectAvanza.value;
+        if (local == visitante && !avanza_real) {
+            alert("Debes seleccionar quién avanza en caso de empate");
+            return;
+        }
+    }
+    
     try {
       const res = await fetch(`/api/partidos/${partidoId}/resultado`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           goles_local_real: parseInt(local), 
-          goles_visitante_real: parseInt(visitante) 
+          goles_visitante_real: parseInt(visitante),
+          avanza_real: avanza_real
         })
       });
       if (res.ok) {
@@ -1328,6 +1413,23 @@ const TabAdmin = ({ quiniela, miembros, reload, miRegistro, eliminarQuiniela, pa
                     className="w-12 border p-1 text-center rounded"
                     defaultValue={p.goles_visitante_real !== null ? p.goles_visitante_real : ''}
                   />
+                  {(() => {
+                    const rondas_eliminatorias = ["Round of 32", "Round of 16", "Quarter-final", "Semi-final", "Match for third place", "Final"];
+                    if (rondas_eliminatorias.includes(p.fase)) {
+                        return (
+                            <select
+                                id={`avanza-${p.id}`}
+                                className="w-24 border p-1 rounded text-xs"
+                                defaultValue={p.avanza_real || ""}
+                            >
+                                <option value="">Avanza...</option>
+                                <option value={p.equipo_local}>{p.equipo_local}</option>
+                                <option value={p.equipo_visitante}>{p.equipo_visitante}</option>
+                            </select>
+                        )
+                    }
+                    return null;
+                  })()}
                   <button 
                     onClick={() => {
                       if(isFinalizado) {

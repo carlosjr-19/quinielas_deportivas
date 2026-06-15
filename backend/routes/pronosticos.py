@@ -57,6 +57,7 @@ def registrar_pronostico(pronostico_in: PronosticoCreate, db: Session = Depends(
             # Si ya había predicho, simplemente actualizamos sus goles
             pronostico_existente.goles_local = pronostico_in.goles_local
             pronostico_existente.goles_visitante = pronostico_in.goles_visitante
+            pronostico_existente.avanza = pronostico_in.avanza
             pronostico_existente.insertado_a = ahora_utc
             db.commit()
             db.refresh(pronostico_existente)
@@ -88,6 +89,7 @@ def registrar_pronostico(pronostico_in: PronosticoCreate, db: Session = Depends(
                 partido_id=pronostico_in.partido_id,
                 goles_local=pronostico_in.goles_local,
                 goles_visitante=pronostico_in.goles_visitante,
+                avanza=pronostico_in.avanza,
                 insertado_a=ahora_utc
             )
             db.add(nuevo_pronostico)
@@ -165,7 +167,9 @@ def listar_pronosticos_usuario(usuario_id: int, db: Session = Depends(get_db)):
                 "puntos_obtenidos": pronostico.puntos_obtenidos,
                 "fecha_partido": partido.fecha.isoformat(),
                 "insertado_a": pronostico.insertado_a.isoformat() + "Z",
-                "texto_libre": pronostico.texto_libre
+                "texto_libre": pronostico.texto_libre,
+                "avanza": pronostico.avanza,
+                "avanza_real": partido.avanza_real
             })
         else:
             resultados.append({
@@ -178,7 +182,8 @@ def listar_pronosticos_usuario(usuario_id: int, db: Session = Depends(get_db)):
                 "puntos_obtenidos": pronostico.puntos_obtenidos,
                 "fecha_partido": pronostico.insertado_a.isoformat() + "Z",
                 "insertado_a": pronostico.insertado_a.isoformat() + "Z",
-                "texto_libre": pronostico.texto_libre
+                "texto_libre": pronostico.texto_libre,
+                "avanza": pronostico.avanza
             })
     return resultados
 
@@ -210,7 +215,8 @@ def feed_pronosticos_quiniela(codigo_acceso: str, db: Session = Depends(get_db))
                 "partido": f"{partido.equipo_local} vs {partido.equipo_visitante}",
                 "pronostico": f"{p.goles_local} - {p.goles_visitante}",
                 "fecha": p.insertado_a.isoformat() + "Z",
-                "puntos_obtenidos": p.puntos_obtenidos
+                "puntos_obtenidos": p.puntos_obtenidos,
+                "avanza": p.avanza
             })
         else:
             resultados.append({
@@ -333,7 +339,9 @@ def listar_todos_pronosticos(codigo_acceso: str, db: Session = Depends(get_db)):
                 "fecha_partido": partido.fecha.isoformat(),
                 "pronostico": f"{p.goles_local} - {p.goles_visitante}",
                 "fecha": p.insertado_a.isoformat() + "Z",
-                "puntos_obtenidos": p.puntos_obtenidos
+                "puntos_obtenidos": p.puntos_obtenidos,
+                "avanza": p.avanza,
+                "avanza_real": partido.avanza_real
             })
         else:
             resultados.append({
@@ -343,7 +351,8 @@ def listar_todos_pronosticos(codigo_acceso: str, db: Session = Depends(get_db)):
                 "partido": "Predicción Libre",
                 "pronostico": p.texto_libre,
                 "fecha": p.insertado_a.isoformat() + "Z",
-                "puntos_obtenidos": p.puntos_obtenidos
+                "puntos_obtenidos": p.puntos_obtenidos,
+                "avanza": p.avanza
             })
             
     return resultados

@@ -37,6 +37,11 @@ try:
         # 1.7 Asegurar columnas de goles reales en partidos
         try_alter("ALTER TABLE partidos ADD COLUMN goles_local_real INTEGER")
         try_alter("ALTER TABLE partidos ADD COLUMN goles_visitante_real INTEGER")
+        
+        # 1.8 Asegurar columnas para lógicas de eliminatorias
+        try_alter("ALTER TABLE partidos ADD COLUMN fase VARCHAR")
+        try_alter("ALTER TABLE partidos ADD COLUMN avanza_real VARCHAR")
+        try_alter("ALTER TABLE pronosticos ADD COLUMN avanza VARCHAR")
             
         # 2. Asegurar que existan los torneos
         try:
