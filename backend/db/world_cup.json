@@ -353,7 +353,13 @@
             "team1": "Sweden",
             "team2": "Tunisia",
             "group": "Group F",
-            "ground": "Monterrey (Guadalupe)"
+            "ground": "Monterrey (Guadalupe)",
+            "score": {
+                "ft": [
+                    5,
+                    1
+                ]
+            }
         },
         {
             "round": "Matchday 10",
