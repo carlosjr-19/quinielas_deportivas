@@ -147,7 +147,7 @@ def listar_pronosticos_usuario(usuario_id: int, db: Session = Depends(get_db)):
         .all()
     
     # Sort after fetching because outerjoin could have null dates
-    pronosticos.sort(key=lambda x: x[1].fecha if x[1] else x[0].insertado_a)
+    pronosticos.sort(key=lambda x: x[1].fecha if x[1] else x[0].insertado_a, reverse=True)
     
     resultados = []
     for pronostico, partido in pronosticos:
