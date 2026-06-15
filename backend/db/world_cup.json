@@ -338,7 +338,13 @@
             "team1": "Netherlands",
             "team2": "Japan",
             "group": "Group F",
-            "ground": "Dallas (Arlington)"
+            "ground": "Dallas (Arlington)",
+            "score": {
+                "ft": [
+                    2,
+                    2
+                ]
+            }
         },
         {
             "round": "Matchday 4",
