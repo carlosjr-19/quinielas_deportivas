@@ -404,7 +404,13 @@
             "team1": "Belgium",
             "team2": "Egypt",
             "group": "Group G",
-            "ground": "Seattle"
+            "ground": "Seattle",
+            "score": {
+                "ft": [
+                    1,
+                    1
+                ]
+            }
         },
         {
             "round": "Matchday 5",
