@@ -413,7 +413,13 @@
             "team1": "Iran",
             "team2": "New Zealand",
             "group": "Group G",
-            "ground": "Los Angeles (Inglewood)"
+            "ground": "Los Angeles (Inglewood)",
+            "score": {
+                "ft": [
+                    2,
+                    2
+                ]
+            }
         },
         {
             "round": "Matchday 11",
@@ -473,7 +479,13 @@
             "team1": "Saudi Arabia",
             "team2": "Uruguay",
             "group": "Group H",
-            "ground": "Miami (Miami Gardens)"
+            "ground": "Miami (Miami Gardens)",
+            "score": {
+                "ft": [
+                    1,
+                    1
+                ]
+            }
         },
         {
             "round": "Matchday 11",
