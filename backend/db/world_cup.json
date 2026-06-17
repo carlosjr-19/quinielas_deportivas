@@ -536,7 +536,13 @@
             "team1": "France",
             "team2": "Senegal",
             "group": "Group I",
-            "ground": "New York/New Jersey (East Rutherford)"
+            "ground": "New York/New Jersey (East Rutherford)",
+            "score": {
+                "ft": [
+                    3,
+                    1
+                ]
+            }
         },
         {
             "round": "Matchday 6",
@@ -545,7 +551,13 @@
             "team1": "Iraq",
             "team2": "Norway",
             "group": "Group I",
-            "ground": "Boston (Foxborough)"
+            "ground": "Boston (Foxborough)",
+            "score": {
+                "ft": [
+                    1,
+                    4
+                ]
+            }
         },
         {
             "round": "Matchday 12",
@@ -605,7 +617,13 @@
             "team1": "Austria",
             "team2": "Jordan",
             "group": "Group J",
-            "ground": "San Francisco Bay Area (Santa Clara)"
+            "ground": "San Francisco Bay Area (Santa Clara)",
+            "score": {
+                "ft": [
+                    3,
+                    1
+                ]
+            }
         },
         {
             "round": "Matchday 12",
@@ -650,7 +668,13 @@
             "team1": "Portugal",
             "team2": "DR Congo",
             "group": "Group K",
-            "ground": "Houston"
+            "ground": "Houston",
+            "score": {
+                "ft": [
+                    1,
+                    1
+                ]
+            }
         },
         {
             "round": "Matchday 7",
@@ -704,7 +728,13 @@
             "team1": "England",
             "team2": "Croatia",
             "group": "Group L",
-            "ground": "Dallas (Arlington)"
+            "ground": "Dallas (Arlington)",
+            "score": {
+                "ft": [
+                    4,
+                    2
+                ]
+            }
         },
         {
             "round": "Matchday 7",
