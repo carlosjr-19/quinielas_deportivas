@@ -590,7 +590,13 @@
             "team1": "Argentina",
             "team2": "Algeria",
             "group": "Group J",
-            "ground": "Kansas City"
+            "ground": "Kansas City",
+            "score": {
+                "ft": [
+                    3,
+                    0
+                ]
+            }
         },
         {
             "round": "Matchday 6",
