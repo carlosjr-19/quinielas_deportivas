@@ -23,14 +23,27 @@ def sincronizar_torneos(db: Session = Depends(get_db)):
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     json_path = os.path.join(base_dir, "db", "world_cup.json")
     
-    if not os.path.exists(json_path):
-        raise HTTPException(status_code=500, detail="El archivo local db/world_cup.json no existe.")
-        
+    url = "https://raw.githubusercontent.com/openfootball/worldcup.json/master/2026/worldcup.json"
     try:
-        with open(json_path, 'r', encoding='utf-8') as f:
-            data = json.load(f)
+        response = requests.get(url, timeout=10)
+        response.raise_for_status()
+        data = response.json()
+        
+        # Guardar en local para estadisticas o por si hay fallback
+        os.makedirs(os.path.dirname(json_path), exist_ok=True)
+        with open(json_path, 'w', encoding='utf-8') as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+            
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error al leer el archivo JSON local: {str(e)}")
+        # Si falla, intentar usar el archivo local
+        if os.path.exists(json_path):
+            try:
+                with open(json_path, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+            except Exception as e_local:
+                raise HTTPException(status_code=500, detail=f"Error red: {str(e)}. Error local: {str(e_local)}")
+        else:
+            raise HTTPException(status_code=500, detail=f"Error al descargar JSON y no hay copia local: {str(e)}")
         
     torneo_nombre = data.get("name", "World Cup 2026")
     
