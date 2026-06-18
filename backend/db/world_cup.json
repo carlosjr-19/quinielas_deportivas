@@ -178,7 +178,13 @@
       "team1": "Switzerland",
       "team2": "Bosnia & Herzegovina",
       "group": "Group B",
-      "ground": "Los Angeles (Inglewood)"
+      "ground": "Los Angeles (Inglewood)",
+      "score": {
+        "ft": [
+          4,
+          1
+        ]
+      }
     },
     {
       "round": "Matchday 8",
@@ -187,7 +193,13 @@
       "team1": "Canada",
       "team2": "Qatar",
       "group": "Group B",
-      "ground": "Vancouver"
+      "ground": "Vancouver",
+      "score": {
+        "ft": [
+          5,
+          0
+        ]
+      }
     },
     {
       "round": "Matchday 14",
