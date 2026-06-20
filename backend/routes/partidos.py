@@ -138,5 +138,22 @@ def actualizar_resultado_partido(partido_id: str, resultado: schemas.ResultadoPa
     
     calcular_puntos_partido(db, partido)
     
+    # ---------------------------------------------------------
+    # Actualización automática del archivo JSON y propagación
+    # ---------------------------------------------------------
+    try:
+        from utils.world_cup_logic import actualizar_json_mundial
+        actualizar_json_mundial(
+            partido_id=partido.id,
+            goles_local=partido.goles_local_real,
+            goles_visitante=partido.goles_visitante_real,
+            avanza_real=partido.avanza_real
+        )
+        
+        from routes.torneos import sincronizar_torneos
+        sincronizar_torneos(db)
+    except Exception as e:
+        print(f"Error actualizando el JSON local o resincronizando: {e}")
+        
     db.refresh(partido)
     return partido
