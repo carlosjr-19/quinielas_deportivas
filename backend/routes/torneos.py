@@ -167,56 +167,15 @@ def obtener_estadisticas(torneo_id: str):
         
     partidos_json = data.get("matches", [])
     
-    grupos = {}
-    ultimos_resultados = []
+    from utils.world_cup_logic import calcular_posiciones_grupos
+    grupos_ordenados = calcular_posiciones_grupos(partidos_json)
     
-    # Init grupos
+    # Init ultimos_resultados (sean de grupo o eliminatoria)
+    ultimos_resultados = []
     for p in partidos_json:
         t1 = p.get("team1", "")
         t2 = p.get("team2", "")
-        grupo = p.get("group")
         score = p.get("score")
-        
-        # Procesar fase de grupos
-        if grupo:
-            if grupo not in grupos:
-                grupos[grupo] = {}
-            if len(t1) > 2 and "/" not in t1 and t1 not in grupos[grupo]:
-                grupos[grupo][t1] = {"equipo": t1, "PJ": 0, "PG": 0, "PE": 0, "PP": 0, "GF": 0, "GC": 0, "DG": 0, "Pts": 0}
-            if len(t2) > 2 and "/" not in t2 and t2 not in grupos[grupo]:
-                grupos[grupo][t2] = {"equipo": t2, "PJ": 0, "PG": 0, "PE": 0, "PP": 0, "GF": 0, "GC": 0, "DG": 0, "Pts": 0}
-                
-            if score and "ft" in score:
-                gl = score["ft"][0]
-                gv = score["ft"][1]
-                
-                # Solo actualizar tabla si es un equipo real de grupo
-                if t1 in grupos[grupo] and t2 in grupos[grupo]:
-                    grupos[grupo][t1]["PJ"] += 1
-                    grupos[grupo][t1]["GF"] += gl
-                    grupos[grupo][t1]["GC"] += gv
-                    grupos[grupo][t1]["DG"] += (gl - gv)
-                    
-                    grupos[grupo][t2]["PJ"] += 1
-                    grupos[grupo][t2]["GF"] += gv
-                    grupos[grupo][t2]["GC"] += gl
-                    grupos[grupo][t2]["DG"] += (gv - gl)
-                    
-                    if gl > gv:
-                        grupos[grupo][t1]["PG"] += 1
-                        grupos[grupo][t1]["Pts"] += 3
-                        grupos[grupo][t2]["PP"] += 1
-                    elif gl < gv:
-                        grupos[grupo][t2]["PG"] += 1
-                        grupos[grupo][t2]["Pts"] += 3
-                        grupos[grupo][t1]["PP"] += 1
-                    else:
-                        grupos[grupo][t1]["PE"] += 1
-                        grupos[grupo][t2]["PE"] += 1
-                        grupos[grupo][t1]["Pts"] += 1
-                        grupos[grupo][t2]["Pts"] += 1
-                        
-        # Agregar a últimos resultados (sean de grupo o eliminatoria)
         if score and "ft" in score:
             gl = score["ft"][0]
             gv = score["ft"][1]
@@ -240,18 +199,6 @@ def obtener_estadisticas(torneo_id: str):
                     "ronda": p.get("round", ""),
                     "_fecha_dt": fecha_dt
                 })
-            
-    # Ordenar equipos en grupos (Pts, DG, GF)
-    grupos_ordenados = []
-    for g_name, g_teams in grupos.items():
-        teams_list = list(g_teams.values())
-        teams_list.sort(key=lambda x: (x["Pts"], x["DG"], x["GF"]), reverse=True)
-        grupos_ordenados.append({
-            "nombre": g_name,
-            "equipos": teams_list
-        })
-        
-    grupos_ordenados.sort(key=lambda x: x["nombre"])
     
     # Ordenar resultados cronológicamente (más recientes primero)
     ultimos_resultados.sort(key=lambda x: x.get("_fecha_dt", datetime.min), reverse=True)
