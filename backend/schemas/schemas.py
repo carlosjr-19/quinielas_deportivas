@@ -27,8 +27,8 @@ class PartidoBase(BaseModel):
     avanza_real: Optional[str] = None
 
 class ResultadoPartidoUpdate(BaseModel):
-    goles_local_real: int
-    goles_visitante_real: int
+    goles_local_real: Optional[int] = None
+    goles_visitante_real: Optional[int] = None
     avanza_real: Optional[str] = None
 
 class PartidoCreate(PartidoBase):

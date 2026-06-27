@@ -41,20 +41,28 @@ def obtener_proximos_partidos(db: Session = Depends(get_db)):
 from schemas import schemas
 
 def calcular_puntos_partido(db: Session, partido: Partido):
-    # Evaluar resultado real
-    empate_real = partido.goles_local_real == partido.goles_visitante_real
-    gana_local_real = partido.goles_local_real > partido.goles_visitante_real
-    gana_visitante_real = partido.goles_local_real < partido.goles_visitante_real
-    
-    rondas_eliminatorias = ["Round of 32", "Round of 16", "Quarter-final", "Semi-final", "Match for third place", "Final"]
-    es_eliminatoria = partido.fase in rondas_eliminatorias
-    
-    avanza_real = partido.avanza_real
-    if es_eliminatoria:
-        if gana_local_real:
-            avanza_real = partido.equipo_local
-        elif gana_visitante_real:
-            avanza_real = partido.equipo_visitante
+    # Si el partido fue des-finalizado, inicializamos a falso/cero todo
+    if partido.goles_local_real is None or partido.goles_visitante_real is None:
+        empate_real = False
+        gana_local_real = False
+        gana_visitante_real = False
+        avanza_real = None
+        es_eliminatoria = False
+    else:
+        # Evaluar resultado real
+        empate_real = partido.goles_local_real == partido.goles_visitante_real
+        gana_local_real = partido.goles_local_real > partido.goles_visitante_real
+        gana_visitante_real = partido.goles_local_real < partido.goles_visitante_real
+        
+        rondas_eliminatorias = ["Round of 32", "Round of 16", "Quarter-final", "Semi-final", "Match for third place", "Final"]
+        es_eliminatoria = partido.fase in rondas_eliminatorias
+        
+        avanza_real = partido.avanza_real
+        if es_eliminatoria:
+            if gana_local_real:
+                avanza_real = partido.equipo_local
+            elif gana_visitante_real:
+                avanza_real = partido.equipo_visitante
 
     # Procesar pronósticos
     from models.pronostico import Pronostico
@@ -110,6 +118,11 @@ def calcular_puntos_partido(db: Session, partido: Partido):
                 elif (empate_real and empate_pron) or (gana_local_real and gana_local_pron) or (gana_visitante_real and gana_visitante_pron):
                     pts_obtenidos = puntos_ganador
                     
+        # Si el partido fue des-finalizado, forzamos a que pts_obtenidos sea 0
+        if partido.estado == "PENDIENTE" or partido.goles_local_real is None:
+            pts_obtenidos = 0
+            
+                    
         # Actualizar los puntos
         puntos_actuales = pronostico.puntos_obtenidos if pronostico.puntos_obtenidos is not None else 0
         diferencia_puntos = pts_obtenidos - puntos_actuales
@@ -133,7 +146,12 @@ def actualizar_resultado_partido(partido_id: str, resultado: schemas.ResultadoPa
     partido.goles_local_real = resultado.goles_local_real
     partido.goles_visitante_real = resultado.goles_visitante_real
     partido.avanza_real = resultado.avanza_real
-    partido.estado = "FINALIZADO"
+    
+    if partido.goles_local_real is None or partido.goles_visitante_real is None:
+        partido.estado = "PENDIENTE"
+    else:
+        partido.estado = "FINALIZADO"
+        
     db.commit()
     
     calcular_puntos_partido(db, partido)

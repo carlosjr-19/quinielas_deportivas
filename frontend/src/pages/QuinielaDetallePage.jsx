@@ -1299,6 +1299,30 @@ const TabAdmin = ({ quiniela, miembros, reload, miRegistro, eliminarQuiniela, pa
     }
   };
 
+  const restablecerPartido = async (partidoId) => {
+    if (!window.confirm("¿Seguro que deseas restablecer este partido? Se borrará el marcador, se restarán los puntos repartidos y se eliminará del cuadro del mundial.")) return;
+    try {
+      const res = await fetch(`/api/partidos/${partidoId}/resultado`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          goles_local_real: null, 
+          goles_visitante_real: null,
+          avanza_real: null
+        })
+      });
+      if (res.ok) {
+        alert("Partido restablecido correctamente");
+        reload();
+      } else {
+        const err = await res.json();
+        alert(err.detail || "Error al restablecer");
+      }
+    } catch (e) {
+      alert("Error de conexión");
+    }
+  };
+
   const guardarConfig = async () => {
     try {
       const res = await fetch(`/api/quinielas/${quiniela.codigo_acceso}`, {
@@ -1514,22 +1538,34 @@ const TabAdmin = ({ quiniela, miembros, reload, miRegistro, eliminarQuiniela, pa
                         }
                         return null;
                       })()}
-                      <button
-                        onClick={() => {
-                          if (isFinalizado) {
-                            if (window.confirm("¿Deseas modificar el resultado de este partido? Se recalcularán los puntos.")) {
-                              finalizarPartido(p.id);
+                      <div className="flex gap-2 ml-2">
+                        <button
+                          onClick={() => {
+                            if (isFinalizado) {
+                              if (window.confirm("¿Deseas modificar el resultado de este partido? Se recalcularán los puntos.")) {
+                                finalizarPartido(p.id);
+                              }
+                            } else {
+                              if (window.confirm("¿Seguro? Esto repartirá los puntos automáticamente a todos los pronósticos.")) {
+                                finalizarPartido(p.id);
+                              }
                             }
-                          } else {
-                            if (window.confirm("¿Seguro? Esto repartirá los puntos automáticamente a todos los pronósticos.")) {
-                              finalizarPartido(p.id);
-                            }
-                          }
-                        }}
-                        className={`${isFinalizado ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700'} text-white px-3 py-1 rounded text-sm font-bold ml-2 transition-colors`}
-                      >
-                        {isFinalizado ? 'Modificar' : 'Finalizar'}
-                      </button>
+                          }}
+                          className={`${isFinalizado ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700'} text-white px-3 py-1 rounded text-sm font-bold transition-colors`}
+                        >
+                          {isFinalizado ? 'Modificar' : 'Finalizar'}
+                        </button>
+                        
+                        {isFinalizado && (
+                          <button
+                            onClick={() => restablecerPartido(p.id)}
+                            className="bg-gray-500 hover:bg-gray-600 text-white px-3 py-1 rounded text-sm font-bold transition-colors"
+                            title="Des-finalizar este partido y borrar el marcador"
+                          >
+                            Restablecer
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 )
