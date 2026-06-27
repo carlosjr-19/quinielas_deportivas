@@ -1687,7 +1687,7 @@
       "team1": "South Africa",
       "team2": "Canada",
       "ground": "Los Angeles (Inglewood)",
-      "original_team1": "2A",
+      "original_team1": "South Africa",
       "original_team2": "Canada"
     },
     {
@@ -1698,8 +1698,8 @@
       "team1": "Germany",
       "team2": "Paraguay",
       "ground": "Boston (Foxborough)",
-      "original_team1": "1E",
-      "original_team2": "3A/B/C/D/F"
+      "original_team1": "Germany",
+      "original_team2": "Paraguay"
     },
     {
       "round": "Round of 32",
@@ -1742,7 +1742,7 @@
       "team1": "Ivory Coast",
       "team2": "Norway",
       "ground": "Dallas (Arlington)",
-      "original_team1": "2E",
+      "original_team1": "Ivory Coast",
       "original_team2": "Norway"
     },
     {
@@ -1775,8 +1775,8 @@
       "team1": "USA",
       "team2": "Bosnia & Herzegovina",
       "ground": "San Francisco Bay Area (Santa Clara)",
-      "original_team1": "1D",
-      "original_team2": "3B/E/F/I/J"
+      "original_team1": "USA",
+      "original_team2": "Bosnia & Herzegovina"
     },
     {
       "round": "Round of 32",
@@ -1872,7 +1872,7 @@
       "date": "2026-07-04",
       "time": "11:00 (Hora México)",
       "team1": "W73",
-      "team2": "Netherlands",
+      "team2": "W75",
       "ground": "Houston",
       "original_team1": "W73",
       "original_team2": "W75"
@@ -1882,7 +1882,7 @@
       "num": 91,
       "date": "2026-07-05",
       "time": "14:00 (Hora México)",
-      "team1": "Brazil",
+      "team1": "W76",
       "team2": "W78",
       "ground": "New York/New Jersey (East Rutherford)",
       "original_team1": "W76",

@@ -127,13 +127,17 @@ def actualizar_json_mundial(partido_id, goles_local, goles_visitante, avanza_rea
         # El partido_id que tenemos en BD tiene el formato: "WC-2026-match-{i+1}"
         expected_id = f"WC-2026-match-{i+1}"
         if expected_id == partido_id:
-            if "score" not in p:
-                p["score"] = {}
-            p["score"]["ft"] = [goles_local, goles_visitante]
-            
-            # Guardar quien avanzó si es eliminatoria (lo guardamos en el json como un flag extra para usarlo luego)
-            if avanza_real:
-                p["advances"] = avanza_real
+            if goles_local is None or goles_visitante is None:
+                p.pop("score", None)
+                p.pop("advances", None)
+            else:
+                if "score" not in p:
+                    p["score"] = {}
+                p["score"]["ft"] = [goles_local, goles_visitante]
+                
+                # Guardar quien avanzó si es eliminatoria
+                if avanza_real:
+                    p["advances"] = avanza_real
                 
             partido_modificado = p
             break
@@ -141,23 +145,22 @@ def actualizar_json_mundial(partido_id, goles_local, goles_visitante, avanza_rea
     if not partido_modificado:
         return # No se encontró
         
-    # 2. Propagar ganadores de eliminatorias a la siguiente ronda (W73, L101, etc)
     if partido_modificado.get("num"):
         num_partido = str(partido_modificado["num"])
         ganador = avanza_real
-        if not ganador:
+        if not ganador and goles_local is not None and goles_visitante is not None:
             if goles_local > goles_visitante:
                 ganador = partido_modificado.get("team1")
             elif goles_local < goles_visitante:
                 ganador = partido_modificado.get("team2")
                 
         perdedor = None
-        if ganador == partido_modificado.get("team1"):
-            perdedor = partido_modificado.get("team2")
-        elif ganador == partido_modificado.get("team2"):
-            perdedor = partido_modificado.get("team1")
-            
         if ganador:
+            if ganador == partido_modificado.get("team1"):
+                perdedor = partido_modificado.get("team2")
+            elif ganador == partido_modificado.get("team2"):
+                perdedor = partido_modificado.get("team1")
+            
             # Buscar partidos futuros que requieran este ganador o perdedor
             for p in partidos:
                 # Inicializar original_team si no existe
@@ -168,6 +171,13 @@ def actualizar_json_mundial(partido_id, goles_local, goles_visitante, avanza_rea
                 if p.get("original_team2") == f"W{num_partido}": p["team2"] = ganador
                 if perdedor and p.get("original_team1") == f"L{num_partido}": p["team1"] = perdedor
                 if perdedor and p.get("original_team2") == f"L{num_partido}": p["team2"] = perdedor
+        else:
+            # Si no hay ganador (partido des-finalizado), restaurar placeholders
+            for p in partidos:
+                if "original_team1" in p and p.get("original_team1") == f"W{num_partido}": p["team1"] = p["original_team1"]
+                if "original_team2" in p and p.get("original_team2") == f"W{num_partido}": p["team2"] = p["original_team2"]
+                if "original_team1" in p and p.get("original_team1") == f"L{num_partido}": p["team1"] = p["original_team1"]
+                if "original_team2" in p and p.get("original_team2") == f"L{num_partido}": p["team2"] = p["original_team2"]
                 
     # 3. Evaluar fase de grupos y propagar 1ros y 2dos
     grupos_calc = calcular_posiciones_grupos(partidos)
@@ -191,19 +201,29 @@ def actualizar_json_mundial(partido_id, goles_local, goles_visitante, avanza_rea
             grupos_finalizados[letra_g] = g["equipos"]
             terceros.append(g["equipos"][2]) # Añadir al tercero a la lista global
             
-    # Asignar 1ros y 2dos
-    for letra_g, equipos in grupos_finalizados.items():
-        t1 = equipos[0]["equipo"]
-        t2 = equipos[1]["equipo"]
-        
-        for p in partidos:
-            if "original_team1" not in p: p["original_team1"] = p.get("team1")
-            if "original_team2" not in p: p["original_team2"] = p.get("team2")
+    # Asignar 1ros y 2dos o restaurar si no está finalizado
+    letras_todas = [g["nombre"].split(" ")[1] for g in grupos_calc if " " in g["nombre"]]
+    for letra_g in letras_todas:
+        if letra_g in grupos_finalizados:
+            equipos = grupos_finalizados[letra_g]
+            t1 = equipos[0]["equipo"]
+            t2 = equipos[1]["equipo"]
             
-            if p.get("original_team1") == f"1{letra_g}": p["team1"] = t1
-            if p.get("original_team2") == f"1{letra_g}": p["team2"] = t1
-            if p.get("original_team1") == f"2{letra_g}": p["team1"] = t2
-            if p.get("original_team2") == f"2{letra_g}": p["team2"] = t2
+            for p in partidos:
+                if "original_team1" not in p: p["original_team1"] = p.get("team1")
+                if "original_team2" not in p: p["original_team2"] = p.get("team2")
+                
+                if p.get("original_team1") == f"1{letra_g}": p["team1"] = t1
+                if p.get("original_team2") == f"1{letra_g}": p["team2"] = t1
+                if p.get("original_team1") == f"2{letra_g}": p["team1"] = t2
+                if p.get("original_team2") == f"2{letra_g}": p["team2"] = t2
+        else:
+            # El grupo no está finalizado, restaurar placeholders
+            for p in partidos:
+                if "original_team1" in p and p.get("original_team1") == f"1{letra_g}": p["team1"] = p["original_team1"]
+                if "original_team2" in p and p.get("original_team2") == f"1{letra_g}": p["team2"] = p["original_team2"]
+                if "original_team1" in p and p.get("original_team1") == f"2{letra_g}": p["team1"] = p["original_team1"]
+                if "original_team2" in p and p.get("original_team2") == f"2{letra_g}": p["team2"] = p["original_team2"]
 
     # 4. Asignar mejores 3ros si todos los grupos están terminados
     if len(grupos_finalizados) == 12: # El mundial 2026 tiene 12 grupos A-L
@@ -242,6 +262,15 @@ def actualizar_json_mundial(partido_id, goles_local, goles_visitante, avanza_rea
                     if letra_origen in orig_val:
                         p_obj[team_key] = equipo_t3["equipo"]
                         break
+    else:
+        # Restaurar todos los placeholders de 3ros si no están todos los grupos
+        for p in partidos:
+            t1_orig = p.get("original_team1", "")
+            if t1_orig and t1_orig.startswith("3") and "/" in t1_orig:
+                p["team1"] = t1_orig
+            t2_orig = p.get("original_team2", "")
+            if t2_orig and t2_orig.startswith("3") and "/" in t2_orig:
+                p["team2"] = t2_orig
     
     # Escribir de vuelta al archivo
     with open(json_path, 'w', encoding='utf-8') as f:
