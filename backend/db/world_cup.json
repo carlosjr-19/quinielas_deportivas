@@ -29,7 +29,9 @@
       ],
       "goals2": [],
       "group": "Group A",
-      "ground": "Mexico City"
+      "ground": "Mexico City",
+      "original_team1": "Mexico",
+      "original_team2": "South Africa"
     },
     {
       "round": "Matchday 1",
@@ -64,7 +66,9 @@
         }
       ],
       "group": "Group A",
-      "ground": "Guadalajara (Zapopan)"
+      "ground": "Guadalajara (Zapopan)",
+      "original_team1": "South Korea",
+      "original_team2": "Czech Republic"
     },
     {
       "round": "Matchday 8",
@@ -79,7 +83,9 @@
           1,
           1
         ]
-      }
+      },
+      "original_team1": "Czech Republic",
+      "original_team2": "South Africa"
     },
     {
       "round": "Matchday 8",
@@ -88,7 +94,15 @@
       "team1": "Mexico",
       "team2": "South Korea",
       "group": "Group A",
-      "ground": "Guadalajara (Zapopan)"
+      "ground": "Guadalajara (Zapopan)",
+      "score": {
+        "ft": [
+          1,
+          0
+        ]
+      },
+      "original_team1": "Mexico",
+      "original_team2": "South Korea"
     },
     {
       "round": "Matchday 14",
@@ -97,7 +111,15 @@
       "team1": "Czech Republic",
       "team2": "Mexico",
       "group": "Group A",
-      "ground": "Mexico City"
+      "ground": "Mexico City",
+      "score": {
+        "ft": [
+          0,
+          3
+        ]
+      },
+      "original_team1": "Czech Republic",
+      "original_team2": "Mexico"
     },
     {
       "round": "Matchday 14",
@@ -106,7 +128,15 @@
       "team1": "South Africa",
       "team2": "South Korea",
       "group": "Group A",
-      "ground": "Monterrey (Guadalupe)"
+      "ground": "Monterrey (Guadalupe)",
+      "score": {
+        "ft": [
+          1,
+          0
+        ]
+      },
+      "original_team1": "South Africa",
+      "original_team2": "South Korea"
     },
     {
       "round": "Matchday 2",
@@ -117,7 +147,7 @@
       "score": {
         "ft": [
           1,
-          1
+          0
         ],
         "ht": [
           0,
@@ -137,7 +167,9 @@
         }
       ],
       "group": "Group B",
-      "ground": "Toronto"
+      "ground": "Toronto",
+      "original_team1": "Canada",
+      "original_team2": "Bosnia & Herzegovina"
     },
     {
       "round": "Matchday 3",
@@ -169,7 +201,9 @@
         }
       ],
       "group": "Group B",
-      "ground": "San Francisco Bay Area (Santa Clara)"
+      "ground": "San Francisco Bay Area (Santa Clara)",
+      "original_team1": "Qatar",
+      "original_team2": "Switzerland"
     },
     {
       "round": "Matchday 8",
@@ -184,7 +218,9 @@
           4,
           1
         ]
-      }
+      },
+      "original_team1": "Switzerland",
+      "original_team2": "Bosnia & Herzegovina"
     },
     {
       "round": "Matchday 8",
@@ -199,7 +235,9 @@
           6,
           0
         ]
-      }
+      },
+      "original_team1": "Canada",
+      "original_team2": "Qatar"
     },
     {
       "round": "Matchday 14",
@@ -208,7 +246,15 @@
       "team1": "Switzerland",
       "team2": "Canada",
       "group": "Group B",
-      "ground": "Vancouver"
+      "ground": "Vancouver",
+      "score": {
+        "ft": [
+          2,
+          1
+        ]
+      },
+      "original_team1": "Switzerland",
+      "original_team2": "Canada"
     },
     {
       "round": "Matchday 14",
@@ -217,7 +263,15 @@
       "team1": "Bosnia & Herzegovina",
       "team2": "Qatar",
       "group": "Group B",
-      "ground": "Seattle"
+      "ground": "Seattle",
+      "score": {
+        "ft": [
+          3,
+          1
+        ]
+      },
+      "original_team1": "Bosnia & Herzegovina",
+      "original_team2": "Qatar"
     },
     {
       "round": "Matchday 3",
@@ -248,7 +302,9 @@
         }
       ],
       "group": "Group C",
-      "ground": "New York/New Jersey (East Rutherford)"
+      "ground": "New York/New Jersey (East Rutherford)",
+      "original_team1": "Brazil",
+      "original_team2": "Morocco"
     },
     {
       "round": "Matchday 3",
@@ -274,7 +330,9 @@
         }
       ],
       "group": "Group C",
-      "ground": "Boston (Foxborough)"
+      "ground": "Boston (Foxborough)",
+      "original_team1": "Haiti",
+      "original_team2": "Scotland"
     },
     {
       "round": "Matchday 9",
@@ -283,7 +341,15 @@
       "team1": "Scotland",
       "team2": "Morocco",
       "group": "Group C",
-      "ground": "Boston (Foxborough)"
+      "ground": "Boston (Foxborough)",
+      "original_team1": "Scotland",
+      "original_team2": "Morocco",
+      "score": {
+        "ft": [
+          0,
+          1
+        ]
+      }
     },
     {
       "round": "Matchday 9",
@@ -292,7 +358,15 @@
       "team1": "Brazil",
       "team2": "Haiti",
       "group": "Group C",
-      "ground": "Philadelphia"
+      "ground": "Philadelphia",
+      "original_team1": "Brazil",
+      "original_team2": "Haiti",
+      "score": {
+        "ft": [
+          3,
+          0
+        ]
+      }
     },
     {
       "round": "Matchday 14",
@@ -301,7 +375,15 @@
       "team1": "Scotland",
       "team2": "Brazil",
       "group": "Group C",
-      "ground": "Miami (Miami Gardens)"
+      "ground": "Miami (Miami Gardens)",
+      "score": {
+        "ft": [
+          0,
+          3
+        ]
+      },
+      "original_team1": "Scotland",
+      "original_team2": "Brazil"
     },
     {
       "round": "Matchday 14",
@@ -310,7 +392,15 @@
       "team1": "Morocco",
       "team2": "Haiti",
       "group": "Group C",
-      "ground": "Atlanta"
+      "ground": "Atlanta",
+      "score": {
+        "ft": [
+          4,
+          2
+        ]
+      },
+      "original_team1": "Morocco",
+      "original_team2": "Haiti"
     },
     {
       "round": "Matchday 2",
@@ -354,7 +444,9 @@
         }
       ],
       "group": "Group D",
-      "ground": "Los Angeles (Inglewood)"
+      "ground": "Los Angeles (Inglewood)",
+      "original_team1": "USA",
+      "original_team2": "Paraguay"
     },
     {
       "round": "Matchday 3",
@@ -384,7 +476,9 @@
       ],
       "goals2": [],
       "group": "Group D",
-      "ground": "Vancouver"
+      "ground": "Vancouver",
+      "original_team1": "Australia",
+      "original_team2": "Turkey"
     },
     {
       "round": "Matchday 9",
@@ -393,7 +487,15 @@
       "team1": "USA",
       "team2": "Australia",
       "group": "Group D",
-      "ground": "Seattle"
+      "ground": "Seattle",
+      "original_team1": "USA",
+      "original_team2": "Australia",
+      "score": {
+        "ft": [
+          2,
+          0
+        ]
+      }
     },
     {
       "round": "Matchday 9",
@@ -402,7 +504,15 @@
       "team1": "Turkey",
       "team2": "Paraguay",
       "group": "Group D",
-      "ground": "San Francisco Bay Area (Santa Clara)"
+      "ground": "San Francisco Bay Area (Santa Clara)",
+      "original_team1": "Turkey",
+      "original_team2": "Paraguay",
+      "score": {
+        "ft": [
+          0,
+          1
+        ]
+      }
     },
     {
       "round": "Matchday 15",
@@ -411,7 +521,15 @@
       "team1": "Turkey",
       "team2": "USA",
       "group": "Group D",
-      "ground": "Los Angeles (Inglewood)"
+      "ground": "Los Angeles (Inglewood)",
+      "score": {
+        "ft": [
+          3,
+          2
+        ]
+      },
+      "original_team1": "Turkey",
+      "original_team2": "USA"
     },
     {
       "round": "Matchday 15",
@@ -420,7 +538,15 @@
       "team1": "Paraguay",
       "team2": "Australia",
       "group": "Group D",
-      "ground": "San Francisco Bay Area (Santa Clara)"
+      "ground": "San Francisco Bay Area (Santa Clara)",
+      "score": {
+        "ft": [
+          0,
+          0
+        ]
+      },
+      "original_team1": "Paraguay",
+      "original_team2": "Australia"
     },
     {
       "round": "Matchday 4",
@@ -476,7 +602,9 @@
         }
       ],
       "group": "Group E",
-      "ground": "Houston"
+      "ground": "Houston",
+      "original_team1": "Germany",
+      "original_team2": "Curaçao"
     },
     {
       "round": "Matchday 4",
@@ -502,7 +630,9 @@
       ],
       "goals2": [],
       "group": "Group E",
-      "ground": "Philadelphia"
+      "ground": "Philadelphia",
+      "original_team1": "Ivory Coast",
+      "original_team2": "Ecuador"
     },
     {
       "round": "Matchday 10",
@@ -511,7 +641,15 @@
       "team1": "Germany",
       "team2": "Ivory Coast",
       "group": "Group E",
-      "ground": "Toronto"
+      "ground": "Toronto",
+      "original_team1": "Germany",
+      "original_team2": "Ivory Coast",
+      "score": {
+        "ft": [
+          2,
+          1
+        ]
+      }
     },
     {
       "round": "Matchday 10",
@@ -520,7 +658,15 @@
       "team1": "Ecuador",
       "team2": "Curaçao",
       "group": "Group E",
-      "ground": "Kansas City"
+      "ground": "Kansas City",
+      "score": {
+        "ft": [
+          0,
+          0
+        ]
+      },
+      "original_team1": "Ecuador",
+      "original_team2": "Curaçao"
     },
     {
       "round": "Matchday 15",
@@ -529,7 +675,15 @@
       "team1": "Curaçao",
       "team2": "Ivory Coast",
       "group": "Group E",
-      "ground": "Philadelphia"
+      "ground": "Philadelphia",
+      "score": {
+        "ft": [
+          0,
+          2
+        ]
+      },
+      "original_team1": "Curaçao",
+      "original_team2": "Ivory Coast"
     },
     {
       "round": "Matchday 15",
@@ -538,7 +692,15 @@
       "team1": "Ecuador",
       "team2": "Germany",
       "group": "Group E",
-      "ground": "New York/New Jersey (East Rutherford)"
+      "ground": "New York/New Jersey (East Rutherford)",
+      "score": {
+        "ft": [
+          2,
+          1
+        ]
+      },
+      "original_team1": "Ecuador",
+      "original_team2": "Germany"
     },
     {
       "round": "Matchday 4",
@@ -577,7 +739,9 @@
         }
       ],
       "group": "Group F",
-      "ground": "Dallas (Arlington)"
+      "ground": "Dallas (Arlington)",
+      "original_team1": "Netherlands",
+      "original_team2": "Japan"
     },
     {
       "round": "Matchday 4",
@@ -624,7 +788,9 @@
         }
       ],
       "group": "Group F",
-      "ground": "Monterrey (Guadalupe)"
+      "ground": "Monterrey (Guadalupe)",
+      "original_team1": "Sweden",
+      "original_team2": "Tunisia"
     },
     {
       "round": "Matchday 10",
@@ -633,7 +799,15 @@
       "team1": "Netherlands",
       "team2": "Sweden",
       "group": "Group F",
-      "ground": "Houston"
+      "ground": "Houston",
+      "original_team1": "Netherlands",
+      "original_team2": "Sweden",
+      "score": {
+        "ft": [
+          5,
+          1
+        ]
+      }
     },
     {
       "round": "Matchday 10",
@@ -642,7 +816,15 @@
       "team1": "Tunisia",
       "team2": "Japan",
       "group": "Group F",
-      "ground": "Monterrey (Guadalupe)"
+      "ground": "Monterrey (Guadalupe)",
+      "score": {
+        "ft": [
+          0,
+          4
+        ]
+      },
+      "original_team1": "Tunisia",
+      "original_team2": "Japan"
     },
     {
       "round": "Matchday 15",
@@ -651,7 +833,15 @@
       "team1": "Japan",
       "team2": "Sweden",
       "group": "Group F",
-      "ground": "Dallas (Arlington)"
+      "ground": "Dallas (Arlington)",
+      "score": {
+        "ft": [
+          1,
+          1
+        ]
+      },
+      "original_team1": "Japan",
+      "original_team2": "Sweden"
     },
     {
       "round": "Matchday 15",
@@ -660,7 +850,15 @@
       "team1": "Tunisia",
       "team2": "Netherlands",
       "group": "Group F",
-      "ground": "Kansas City"
+      "ground": "Kansas City",
+      "score": {
+        "ft": [
+          1,
+          3
+        ]
+      },
+      "original_team1": "Tunisia",
+      "original_team2": "Netherlands"
     },
     {
       "round": "Matchday 5",
@@ -692,7 +890,9 @@
         }
       ],
       "group": "Group G",
-      "ground": "Seattle"
+      "ground": "Seattle",
+      "original_team1": "Belgium",
+      "original_team2": "Egypt"
     },
     {
       "round": "Matchday 5",
@@ -731,7 +931,9 @@
         }
       ],
       "group": "Group G",
-      "ground": "Los Angeles (Inglewood)"
+      "ground": "Los Angeles (Inglewood)",
+      "original_team1": "Iran",
+      "original_team2": "New Zealand"
     },
     {
       "round": "Matchday 11",
@@ -740,7 +942,15 @@
       "team1": "Belgium",
       "team2": "Iran",
       "group": "Group G",
-      "ground": "Los Angeles (Inglewood)"
+      "ground": "Los Angeles (Inglewood)",
+      "score": {
+        "ft": [
+          0,
+          0
+        ]
+      },
+      "original_team1": "Belgium",
+      "original_team2": "Iran"
     },
     {
       "round": "Matchday 11",
@@ -749,7 +959,15 @@
       "team1": "New Zealand",
       "team2": "Egypt",
       "group": "Group G",
-      "ground": "Vancouver"
+      "ground": "Vancouver",
+      "score": {
+        "ft": [
+          1,
+          3
+        ]
+      },
+      "original_team1": "New Zealand",
+      "original_team2": "Egypt"
     },
     {
       "round": "Matchday 16",
@@ -758,7 +976,15 @@
       "team1": "Egypt",
       "team2": "Iran",
       "group": "Group G",
-      "ground": "Seattle"
+      "ground": "Seattle",
+      "score": {
+        "ft": [
+          1,
+          1
+        ]
+      },
+      "original_team1": "Egypt",
+      "original_team2": "Iran"
     },
     {
       "round": "Matchday 16",
@@ -767,7 +993,15 @@
       "team1": "New Zealand",
       "team2": "Belgium",
       "group": "Group G",
-      "ground": "Vancouver"
+      "ground": "Vancouver",
+      "score": {
+        "ft": [
+          1,
+          5
+        ]
+      },
+      "original_team1": "New Zealand",
+      "original_team2": "Belgium"
     },
     {
       "round": "Matchday 5",
@@ -786,7 +1020,9 @@
         ]
       },
       "group": "Group H",
-      "ground": "Atlanta"
+      "ground": "Atlanta",
+      "original_team1": "Spain",
+      "original_team2": "Cape Verde"
     },
     {
       "round": "Matchday 5",
@@ -817,7 +1053,9 @@
         }
       ],
       "group": "Group H",
-      "ground": "Miami (Miami Gardens)"
+      "ground": "Miami (Miami Gardens)",
+      "original_team1": "Saudi Arabia",
+      "original_team2": "Uruguay"
     },
     {
       "round": "Matchday 11",
@@ -826,7 +1064,15 @@
       "team1": "Spain",
       "team2": "Saudi Arabia",
       "group": "Group H",
-      "ground": "Atlanta"
+      "ground": "Atlanta",
+      "score": {
+        "ft": [
+          4,
+          0
+        ]
+      },
+      "original_team1": "Spain",
+      "original_team2": "Saudi Arabia"
     },
     {
       "round": "Matchday 11",
@@ -835,7 +1081,15 @@
       "team1": "Uruguay",
       "team2": "Cape Verde",
       "group": "Group H",
-      "ground": "Miami (Miami Gardens)"
+      "ground": "Miami (Miami Gardens)",
+      "score": {
+        "ft": [
+          2,
+          2
+        ]
+      },
+      "original_team1": "Uruguay",
+      "original_team2": "Cape Verde"
     },
     {
       "round": "Matchday 16",
@@ -844,7 +1098,15 @@
       "team1": "Cape Verde",
       "team2": "Saudi Arabia",
       "group": "Group H",
-      "ground": "Houston"
+      "ground": "Houston",
+      "score": {
+        "ft": [
+          0,
+          0
+        ]
+      },
+      "original_team1": "Cape Verde",
+      "original_team2": "Saudi Arabia"
     },
     {
       "round": "Matchday 16",
@@ -853,7 +1115,15 @@
       "team1": "Uruguay",
       "team2": "Spain",
       "group": "Group H",
-      "ground": "Guadalajara (Zapopan)"
+      "ground": "Guadalajara (Zapopan)",
+      "score": {
+        "ft": [
+          0,
+          1
+        ]
+      },
+      "original_team1": "Uruguay",
+      "original_team2": "Spain"
     },
     {
       "round": "Matchday 6",
@@ -892,7 +1162,9 @@
         }
       ],
       "group": "Group I",
-      "ground": "New York/New Jersey (East Rutherford)"
+      "ground": "New York/New Jersey (East Rutherford)",
+      "original_team1": "France",
+      "original_team2": "Senegal"
     },
     {
       "round": "Matchday 6",
@@ -936,7 +1208,9 @@
         }
       ],
       "group": "Group I",
-      "ground": "Boston (Foxborough)"
+      "ground": "Boston (Foxborough)",
+      "original_team1": "Iraq",
+      "original_team2": "Norway"
     },
     {
       "round": "Matchday 12",
@@ -945,7 +1219,15 @@
       "team1": "France",
       "team2": "Iraq",
       "group": "Group I",
-      "ground": "Philadelphia"
+      "ground": "Philadelphia",
+      "score": {
+        "ft": [
+          3,
+          0
+        ]
+      },
+      "original_team1": "France",
+      "original_team2": "Iraq"
     },
     {
       "round": "Matchday 12",
@@ -954,7 +1236,15 @@
       "team1": "Norway",
       "team2": "Senegal",
       "group": "Group I",
-      "ground": "New York/New Jersey (East Rutherford)"
+      "ground": "New York/New Jersey (East Rutherford)",
+      "score": {
+        "ft": [
+          3,
+          2
+        ]
+      },
+      "original_team1": "Norway",
+      "original_team2": "Senegal"
     },
     {
       "round": "Matchday 16",
@@ -963,7 +1253,15 @@
       "team1": "Norway",
       "team2": "France",
       "group": "Group I",
-      "ground": "Boston (Foxborough)"
+      "ground": "Boston (Foxborough)",
+      "score": {
+        "ft": [
+          1,
+          1
+        ]
+      },
+      "original_team1": "Norway",
+      "original_team2": "France"
     },
     {
       "round": "Matchday 16",
@@ -972,7 +1270,15 @@
       "team1": "Senegal",
       "team2": "Iraq",
       "group": "Group I",
-      "ground": "Toronto"
+      "ground": "Toronto",
+      "score": {
+        "ft": [
+          5,
+          0
+        ]
+      },
+      "original_team1": "Senegal",
+      "original_team2": "Iraq"
     },
     {
       "round": "Matchday 6",
@@ -1006,7 +1312,9 @@
       ],
       "goals2": [],
       "group": "Group J",
-      "ground": "Kansas City"
+      "ground": "Kansas City",
+      "original_team1": "Argentina",
+      "original_team2": "Algeria"
     },
     {
       "round": "Matchday 6",
@@ -1047,7 +1355,9 @@
         }
       ],
       "group": "Group J",
-      "ground": "San Francisco Bay Area (Santa Clara)"
+      "ground": "San Francisco Bay Area (Santa Clara)",
+      "original_team1": "Austria",
+      "original_team2": "Jordan"
     },
     {
       "round": "Matchday 12",
@@ -1056,7 +1366,15 @@
       "team1": "Argentina",
       "team2": "Austria",
       "group": "Group J",
-      "ground": "Dallas (Arlington)"
+      "ground": "Dallas (Arlington)",
+      "score": {
+        "ft": [
+          2,
+          0
+        ]
+      },
+      "original_team1": "Argentina",
+      "original_team2": "Austria"
     },
     {
       "round": "Matchday 12",
@@ -1065,7 +1383,15 @@
       "team1": "Jordan",
       "team2": "Algeria",
       "group": "Group J",
-      "ground": "San Francisco Bay Area (Santa Clara)"
+      "ground": "San Francisco Bay Area (Santa Clara)",
+      "score": {
+        "ft": [
+          1,
+          2
+        ]
+      },
+      "original_team1": "Jordan",
+      "original_team2": "Algeria"
     },
     {
       "round": "Matchday 17",
@@ -1074,7 +1400,9 @@
       "team1": "Algeria",
       "team2": "Austria",
       "group": "Group J",
-      "ground": "Kansas City"
+      "ground": "Kansas City",
+      "original_team1": "Algeria",
+      "original_team2": "Austria"
     },
     {
       "round": "Matchday 17",
@@ -1083,7 +1411,9 @@
       "team1": "Jordan",
       "team2": "Argentina",
       "group": "Group J",
-      "ground": "Dallas (Arlington)"
+      "ground": "Dallas (Arlington)",
+      "original_team1": "Jordan",
+      "original_team2": "Argentina"
     },
     {
       "round": "Matchday 7",
@@ -1114,7 +1444,9 @@
         }
       ],
       "group": "Group K",
-      "ground": "Houston"
+      "ground": "Houston",
+      "original_team1": "Portugal",
+      "original_team2": "DR Congo"
     },
     {
       "round": "Matchday 7",
@@ -1153,7 +1485,9 @@
         }
       ],
       "group": "Group K",
-      "ground": "Mexico City"
+      "ground": "Mexico City",
+      "original_team1": "Uzbekistan",
+      "original_team2": "Colombia"
     },
     {
       "round": "Matchday 13",
@@ -1162,7 +1496,15 @@
       "team1": "Portugal",
       "team2": "Uzbekistan",
       "group": "Group K",
-      "ground": "Houston"
+      "ground": "Houston",
+      "score": {
+        "ft": [
+          5,
+          0
+        ]
+      },
+      "original_team1": "Portugal",
+      "original_team2": "Uzbekistan"
     },
     {
       "round": "Matchday 13",
@@ -1171,7 +1513,15 @@
       "team1": "Colombia",
       "team2": "DR Congo",
       "group": "Group K",
-      "ground": "Guadalajara (Zapopan)"
+      "ground": "Guadalajara (Zapopan)",
+      "score": {
+        "ft": [
+          1,
+          0
+        ]
+      },
+      "original_team1": "Colombia",
+      "original_team2": "DR Congo"
     },
     {
       "round": "Matchday 17",
@@ -1180,7 +1530,9 @@
       "team1": "Colombia",
       "team2": "Portugal",
       "group": "Group K",
-      "ground": "Miami (Miami Gardens)"
+      "ground": "Miami (Miami Gardens)",
+      "original_team1": "Colombia",
+      "original_team2": "Portugal"
     },
     {
       "round": "Matchday 17",
@@ -1189,7 +1541,9 @@
       "team1": "DR Congo",
       "team2": "Uzbekistan",
       "group": "Group K",
-      "ground": "Atlanta"
+      "ground": "Atlanta",
+      "original_team1": "DR Congo",
+      "original_team2": "Uzbekistan"
     },
     {
       "round": "Matchday 7",
@@ -1237,7 +1591,9 @@
         }
       ],
       "group": "Group L",
-      "ground": "Dallas (Arlington)"
+      "ground": "Dallas (Arlington)",
+      "original_team1": "England",
+      "original_team2": "Croatia"
     },
     {
       "round": "Matchday 7",
@@ -1263,7 +1619,9 @@
       ],
       "goals2": [],
       "group": "Group L",
-      "ground": "Toronto"
+      "ground": "Toronto",
+      "original_team1": "Ghana",
+      "original_team2": "Panama"
     },
     {
       "round": "Matchday 13",
@@ -1272,7 +1630,15 @@
       "team1": "England",
       "team2": "Ghana",
       "group": "Group L",
-      "ground": "Boston (Foxborough)"
+      "ground": "Boston (Foxborough)",
+      "score": {
+        "ft": [
+          0,
+          0
+        ]
+      },
+      "original_team1": "England",
+      "original_team2": "Ghana"
     },
     {
       "round": "Matchday 13",
@@ -1281,7 +1647,15 @@
       "team1": "Panama",
       "team2": "Croatia",
       "group": "Group L",
-      "ground": "Toronto"
+      "ground": "Toronto",
+      "score": {
+        "ft": [
+          0,
+          1
+        ]
+      },
+      "original_team1": "Panama",
+      "original_team2": "Croatia"
     },
     {
       "round": "Matchday 17",
@@ -1290,7 +1664,9 @@
       "team1": "Panama",
       "team2": "England",
       "group": "Group L",
-      "ground": "New York/New Jersey (East Rutherford)"
+      "ground": "New York/New Jersey (East Rutherford)",
+      "original_team1": "Panama",
+      "original_team2": "England"
     },
     {
       "round": "Matchday 17",
@@ -1299,70 +1675,86 @@
       "team1": "Croatia",
       "team2": "Ghana",
       "group": "Group L",
-      "ground": "Philadelphia"
+      "ground": "Philadelphia",
+      "original_team1": "Croatia",
+      "original_team2": "Ghana"
     },
     {
       "round": "Round of 32",
       "num": 73,
       "date": "2026-06-28",
       "time": "13:00 (Hora México)",
-      "team1": "2A",
-      "team2": "2B",
-      "ground": "Los Angeles (Inglewood)"
+      "team1": "South Africa",
+      "team2": "Canada",
+      "ground": "Los Angeles (Inglewood)",
+      "original_team1": "2A",
+      "original_team2": "Canada"
     },
     {
       "round": "Round of 32",
       "num": 74,
       "date": "2026-06-29",
       "time": "14:30 (Hora México)",
-      "team1": "1E",
-      "team2": "3A/B/C/D/F",
-      "ground": "Boston (Foxborough)"
+      "team1": "Germany",
+      "team2": "Paraguay",
+      "ground": "Boston (Foxborough)",
+      "original_team1": "1E",
+      "original_team2": "3A/B/C/D/F"
     },
     {
       "round": "Round of 32",
       "num": 75,
       "date": "2026-06-29",
       "time": "19:00 (Hora México)",
-      "team1": "1F",
-      "team2": "2C",
-      "ground": "Monterrey (Guadalupe)"
+      "team1": "Netherlands",
+      "team2": "Morocco",
+      "ground": "Monterrey (Guadalupe)",
+      "original_team1": "Netherlands",
+      "original_team2": "Morocco"
     },
     {
       "round": "Round of 32",
       "num": 76,
       "date": "2026-06-29",
       "time": "11:00 (Hora México)",
-      "team1": "1C",
-      "team2": "2F",
-      "ground": "Houston"
+      "team1": "Brazil",
+      "team2": "Japan",
+      "ground": "Houston",
+      "original_team1": "Brazil",
+      "original_team2": "Japan"
     },
     {
       "round": "Round of 32",
       "num": 77,
       "date": "2026-06-30",
       "time": "15:00 (Hora México)",
-      "team1": "1I",
-      "team2": "3C/D/F/G/H",
-      "ground": "New York/New Jersey (East Rutherford)"
+      "team1": "France",
+      "team2": "Sweden",
+      "ground": "New York/New Jersey (East Rutherford)",
+      "original_team1": "France",
+      "original_team2": "Sweden"
     },
     {
       "round": "Round of 32",
       "num": 78,
       "date": "2026-06-30",
       "time": "11:00 (Hora México)",
-      "team1": "2E",
-      "team2": "2I",
-      "ground": "Dallas (Arlington)"
+      "team1": "Ivory Coast",
+      "team2": "Norway",
+      "ground": "Dallas (Arlington)",
+      "original_team1": "2E",
+      "original_team2": "Norway"
     },
     {
       "round": "Round of 32",
       "num": 79,
       "date": "2026-06-30",
       "time": "19:00 (Hora México)",
-      "team1": "1A",
+      "team1": "Mexico",
       "team2": "3C/E/F/H/I",
-      "ground": "Mexico City"
+      "ground": "Mexico City",
+      "original_team1": "1A",
+      "original_team2": "3C/E/F/H/I"
     },
     {
       "round": "Round of 32",
@@ -1371,25 +1763,31 @@
       "time": "10:00 (Hora México)",
       "team1": "1L",
       "team2": "3E/H/I/J/K",
-      "ground": "Atlanta"
+      "ground": "Atlanta",
+      "original_team1": "1L",
+      "original_team2": "3E/H/I/J/K"
     },
     {
       "round": "Round of 32",
       "num": 81,
       "date": "2026-07-01",
       "time": "18:00 (Hora México)",
-      "team1": "1D",
-      "team2": "3B/E/F/I/J",
-      "ground": "San Francisco Bay Area (Santa Clara)"
+      "team1": "USA",
+      "team2": "Bosnia & Herzegovina",
+      "ground": "San Francisco Bay Area (Santa Clara)",
+      "original_team1": "1D",
+      "original_team2": "3B/E/F/I/J"
     },
     {
       "round": "Round of 32",
       "num": 82,
       "date": "2026-07-01",
       "time": "14:00 (Hora México)",
-      "team1": "1G",
+      "team1": "Belgium",
       "team2": "3A/E/H/I/J",
-      "ground": "Seattle"
+      "ground": "Seattle",
+      "original_team1": "Belgium",
+      "original_team2": "3A/E/H/I/J"
     },
     {
       "round": "Round of 32",
@@ -1398,25 +1796,31 @@
       "time": "17:00 (Hora México)",
       "team1": "2K",
       "team2": "2L",
-      "ground": "Toronto"
+      "ground": "Toronto",
+      "original_team1": "2K",
+      "original_team2": "2L"
     },
     {
       "round": "Round of 32",
       "num": 84,
       "date": "2026-07-02",
       "time": "13:00 (Hora México)",
-      "team1": "1H",
+      "team1": "Spain",
       "team2": "2J",
-      "ground": "Los Angeles (Inglewood)"
+      "ground": "Los Angeles (Inglewood)",
+      "original_team1": "Spain",
+      "original_team2": "2J"
     },
     {
       "round": "Round of 32",
       "num": 85,
       "date": "2026-07-02",
       "time": "21:00 (Hora México)",
-      "team1": "1B",
+      "team1": "Switzerland",
       "team2": "3E/F/G/I/J",
-      "ground": "Vancouver"
+      "ground": "Vancouver",
+      "original_team1": "Switzerland",
+      "original_team2": "3E/F/G/I/J"
     },
     {
       "round": "Round of 32",
@@ -1424,8 +1828,10 @@
       "date": "2026-07-03",
       "time": "16:00 (Hora México)",
       "team1": "1J",
-      "team2": "2H",
-      "ground": "Miami (Miami Gardens)"
+      "team2": "Cape Verde",
+      "ground": "Miami (Miami Gardens)",
+      "original_team1": "1J",
+      "original_team2": "Cape Verde"
     },
     {
       "round": "Round of 32",
@@ -1434,16 +1840,20 @@
       "time": "19:30 (Hora México)",
       "team1": "1K",
       "team2": "3D/E/I/J/L",
-      "ground": "Kansas City"
+      "ground": "Kansas City",
+      "original_team1": "1K",
+      "original_team2": "3D/E/I/J/L"
     },
     {
       "round": "Round of 32",
       "num": 88,
       "date": "2026-07-03",
       "time": "12:00 (Hora México)",
-      "team1": "2D",
-      "team2": "2G",
-      "ground": "Dallas (Arlington)"
+      "team1": "Australia",
+      "team2": "Egypt",
+      "ground": "Dallas (Arlington)",
+      "original_team1": "2D",
+      "original_team2": "Egypt"
     },
     {
       "round": "Round of 16",
@@ -1452,7 +1862,9 @@
       "time": "15:00 (Hora México)",
       "team1": "W74",
       "team2": "W77",
-      "ground": "Philadelphia"
+      "ground": "Philadelphia",
+      "original_team1": "W74",
+      "original_team2": "W77"
     },
     {
       "round": "Round of 16",
@@ -1460,17 +1872,21 @@
       "date": "2026-07-04",
       "time": "11:00 (Hora México)",
       "team1": "W73",
-      "team2": "W75",
-      "ground": "Houston"
+      "team2": "Netherlands",
+      "ground": "Houston",
+      "original_team1": "W73",
+      "original_team2": "W75"
     },
     {
       "round": "Round of 16",
       "num": 91,
       "date": "2026-07-05",
       "time": "14:00 (Hora México)",
-      "team1": "W76",
+      "team1": "Brazil",
       "team2": "W78",
-      "ground": "New York/New Jersey (East Rutherford)"
+      "ground": "New York/New Jersey (East Rutherford)",
+      "original_team1": "W76",
+      "original_team2": "W78"
     },
     {
       "round": "Round of 16",
@@ -1479,7 +1895,9 @@
       "time": "18:00 (Hora México)",
       "team1": "W79",
       "team2": "W80",
-      "ground": "Mexico City"
+      "ground": "Mexico City",
+      "original_team1": "W79",
+      "original_team2": "W80"
     },
     {
       "round": "Round of 16",
@@ -1488,7 +1906,9 @@
       "time": "13:00 (Hora México)",
       "team1": "W83",
       "team2": "W84",
-      "ground": "Dallas (Arlington)"
+      "ground": "Dallas (Arlington)",
+      "original_team1": "W83",
+      "original_team2": "W84"
     },
     {
       "round": "Round of 16",
@@ -1497,7 +1917,9 @@
       "time": "18:00 (Hora México)",
       "team1": "W81",
       "team2": "W82",
-      "ground": "Seattle"
+      "ground": "Seattle",
+      "original_team1": "W81",
+      "original_team2": "W82"
     },
     {
       "round": "Round of 16",
@@ -1506,7 +1928,9 @@
       "time": "10:00 (Hora México)",
       "team1": "W86",
       "team2": "W88",
-      "ground": "Atlanta"
+      "ground": "Atlanta",
+      "original_team1": "W86",
+      "original_team2": "W88"
     },
     {
       "round": "Round of 16",
@@ -1515,7 +1939,9 @@
       "time": "14:00 (Hora México)",
       "team1": "W85",
       "team2": "W87",
-      "ground": "Vancouver"
+      "ground": "Vancouver",
+      "original_team1": "W85",
+      "original_team2": "W87"
     },
     {
       "round": "Quarter-final",
@@ -1524,7 +1950,9 @@
       "time": "14:00 (Hora México)",
       "team1": "W89",
       "team2": "W90",
-      "ground": "Boston (Foxborough)"
+      "ground": "Boston (Foxborough)",
+      "original_team1": "W89",
+      "original_team2": "W90"
     },
     {
       "round": "Quarter-final",
@@ -1533,7 +1961,9 @@
       "time": "13:00 (Hora México)",
       "team1": "W93",
       "team2": "W94",
-      "ground": "Los Angeles (Inglewood)"
+      "ground": "Los Angeles (Inglewood)",
+      "original_team1": "W93",
+      "original_team2": "W94"
     },
     {
       "round": "Quarter-final",
@@ -1542,7 +1972,9 @@
       "time": "15:00 (Hora México)",
       "team1": "W91",
       "team2": "W92",
-      "ground": "Miami (Miami Gardens)"
+      "ground": "Miami (Miami Gardens)",
+      "original_team1": "W91",
+      "original_team2": "W92"
     },
     {
       "round": "Quarter-final",
@@ -1551,7 +1983,9 @@
       "time": "19:00 (Hora México)",
       "team1": "W95",
       "team2": "W96",
-      "ground": "Kansas City"
+      "ground": "Kansas City",
+      "original_team1": "W95",
+      "original_team2": "W96"
     },
     {
       "round": "Semi-final",
@@ -1560,7 +1994,9 @@
       "time": "13:00 (Hora México)",
       "team1": "W97",
       "team2": "W98",
-      "ground": "Dallas (Arlington)"
+      "ground": "Dallas (Arlington)",
+      "original_team1": "W97",
+      "original_team2": "W98"
     },
     {
       "round": "Semi-final",
@@ -1569,7 +2005,9 @@
       "time": "13:00 (Hora México)",
       "team1": "W99",
       "team2": "W100",
-      "ground": "Atlanta"
+      "ground": "Atlanta",
+      "original_team1": "W99",
+      "original_team2": "W100"
     },
     {
       "round": "Match for third place",
@@ -1578,7 +2016,9 @@
       "time": "15:00 (Hora México)",
       "team1": "L101",
       "team2": "L102",
-      "ground": "Miami (Miami Gardens)"
+      "ground": "Miami (Miami Gardens)",
+      "original_team1": "L101",
+      "original_team2": "L102"
     },
     {
       "round": "Final",
@@ -1587,7 +2027,9 @@
       "time": "13:00 (Hora México)",
       "team1": "W101",
       "team2": "W102",
-      "ground": "New York/New Jersey (East Rutherford)"
+      "ground": "New York/New Jersey (East Rutherford)",
+      "original_team1": "W101",
+      "original_team2": "W102"
     }
   ]
 }

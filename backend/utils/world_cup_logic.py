@@ -147,23 +147,27 @@ def actualizar_json_mundial(partido_id, goles_local, goles_visitante, avanza_rea
         ganador = avanza_real
         if not ganador:
             if goles_local > goles_visitante:
-                ganador = partido_modificado["team1"]
+                ganador = partido_modificado.get("team1")
             elif goles_local < goles_visitante:
-                ganador = partido_modificado["team2"]
+                ganador = partido_modificado.get("team2")
                 
         perdedor = None
-        if ganador == partido_modificado["team1"]:
-            perdedor = partido_modificado["team2"]
-        elif ganador == partido_modificado["team2"]:
-            perdedor = partido_modificado["team1"]
+        if ganador == partido_modificado.get("team1"):
+            perdedor = partido_modificado.get("team2")
+        elif ganador == partido_modificado.get("team2"):
+            perdedor = partido_modificado.get("team1")
             
         if ganador:
             # Buscar partidos futuros que requieran este ganador o perdedor
             for p in partidos:
-                if p.get("team1") == f"W{num_partido}": p["team1"] = ganador
-                if p.get("team2") == f"W{num_partido}": p["team2"] = ganador
-                if perdedor and p.get("team1") == f"L{num_partido}": p["team1"] = perdedor
-                if perdedor and p.get("team2") == f"L{num_partido}": p["team2"] = perdedor
+                # Inicializar original_team si no existe
+                if "original_team1" not in p: p["original_team1"] = p.get("team1")
+                if "original_team2" not in p: p["original_team2"] = p.get("team2")
+                
+                if p.get("original_team1") == f"W{num_partido}": p["team1"] = ganador
+                if p.get("original_team2") == f"W{num_partido}": p["team2"] = ganador
+                if perdedor and p.get("original_team1") == f"L{num_partido}": p["team1"] = perdedor
+                if perdedor and p.get("original_team2") == f"L{num_partido}": p["team2"] = perdedor
                 
     # 3. Evaluar fase de grupos y propagar 1ros y 2dos
     grupos_calc = calcular_posiciones_grupos(partidos)
@@ -193,10 +197,13 @@ def actualizar_json_mundial(partido_id, goles_local, goles_visitante, avanza_rea
         t2 = equipos[1]["equipo"]
         
         for p in partidos:
-            if p.get("team1") == f"1{letra_g}": p["team1"] = t1
-            if p.get("team2") == f"1{letra_g}": p["team2"] = t1
-            if p.get("team1") == f"2{letra_g}": p["team1"] = t2
-            if p.get("team2") == f"2{letra_g}": p["team2"] = t2
+            if "original_team1" not in p: p["original_team1"] = p.get("team1")
+            if "original_team2" not in p: p["original_team2"] = p.get("team2")
+            
+            if p.get("original_team1") == f"1{letra_g}": p["team1"] = t1
+            if p.get("original_team2") == f"1{letra_g}": p["team2"] = t1
+            if p.get("original_team1") == f"2{letra_g}": p["team1"] = t2
+            if p.get("original_team2") == f"2{letra_g}": p["team2"] = t2
 
     # 4. Asignar mejores 3ros si todos los grupos están terminados
     if len(grupos_finalizados) == 12: # El mundial 2026 tiene 12 grupos A-L
@@ -210,10 +217,16 @@ def actualizar_json_mundial(partido_id, goles_local, goles_visitante, avanza_rea
         # En world_cup.json, los placeholders son "3A/B/C..."
         placeholders_3ros = []
         for p in partidos:
-            if p.get("team1") and p.get("team1").startswith("3") and "/" in p.get("team1"):
-                placeholders_3ros.append((p, "team1"))
-            if p.get("team2") and p.get("team2").startswith("3") and "/" in p.get("team2"):
-                placeholders_3ros.append((p, "team2"))
+            if "original_team1" not in p: p["original_team1"] = p.get("team1")
+            if "original_team2" not in p: p["original_team2"] = p.get("team2")
+            
+            t1_orig = p.get("original_team1", "")
+            if t1_orig and t1_orig.startswith("3") and "/" in t1_orig:
+                placeholders_3ros.append((p, "team1", t1_orig))
+                
+            t2_orig = p.get("original_team2", "")
+            if t2_orig and t2_orig.startswith("3") and "/" in t2_orig:
+                placeholders_3ros.append((p, "team2", t2_orig))
                 
         # Asignación simple: iterar sobre los 8 mejores y asignar al primer placeholder compatible
         for equipo_t3 in mejores_8:
@@ -223,10 +236,10 @@ def actualizar_json_mundial(partido_id, goles_local, goles_visitante, avanza_rea
                     letra_origen = g_name.split(" ")[1]
                     break
                     
-            for p_obj, team_key in placeholders_3ros:
-                if p_obj[team_key].startswith("3") and "/" in p_obj[team_key]:
+            for p_obj, team_key, orig_val in placeholders_3ros:
+                if orig_val.startswith("3") and "/" in orig_val:
                     # Verifica si el placeholder permite equipos de esta letra (ej. "3A/B/C/D/F")
-                    if letra_origen in p_obj[team_key]:
+                    if letra_origen in orig_val:
                         p_obj[team_key] = equipo_t3["equipo"]
                         break
     

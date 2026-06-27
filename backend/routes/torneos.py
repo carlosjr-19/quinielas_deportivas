@@ -228,8 +228,28 @@ def obtener_estadisticas(torneo_id: str):
                 "goles_local": gl,
                 "goles_visitante": gv,
                 "fecha": p.get("date"),
-                "hora": p.get("time")
+                "hora": p.get("time"),
+                "num": p.get("num")
             })
+            
+    # Ordenar los partidos de eliminatorias para que el cuadro del frontend se dibuje 
+    # conectando correctamente los cruces en un layout tradicional de árbol lineal.
+    bracket_order = {
+        "Round of 32": [74, 77, 73, 75, 83, 84, 81, 82, 76, 78, 79, 80, 86, 88, 85, 87],
+        "Round of 16": [89, 90, 93, 94, 91, 92, 95, 96],
+        "Quarter-final": [97, 98, 99, 100],
+        "Semi-final": [101, 102],
+        "Match for third place": [103],
+        "Final": [104]
+    }
+    
+    for r in rondas_eliminatorias:
+        if r in bracket_order:
+            order_list = bracket_order[r]
+            eliminatorias[r] = sorted(
+                eliminatorias[r], 
+                key=lambda x: order_list.index(x.get("num")) if x.get("num") in order_list else 999
+            )
             
     return {
         "grupos": grupos_ordenados,
