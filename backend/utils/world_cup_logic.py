@@ -251,8 +251,10 @@ def actualizar_json_mundial(partido_id, goles_local, goles_visitante, avanza_rea
         # Asignación simple: iterar sobre los 8 mejores y asignar al primer placeholder compatible
         for equipo_t3 in mejores_8:
             letra_origen = ""
-            for g_name, g_teams in grupos_calc:
-                if g_teams[2]["equipo"] == equipo_t3["equipo"]:
+            for g_obj in grupos_calc:
+                g_name = g_obj["nombre"]
+                g_teams = g_obj["equipos"]
+                if len(g_teams) > 2 and g_teams[2]["equipo"] == equipo_t3["equipo"]:
                     letra_origen = g_name.split(" ")[1]
                     break
                     
