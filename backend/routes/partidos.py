@@ -101,14 +101,14 @@ def calcular_puntos_partido(db: Session, partido: Partido):
                 
                 if empate_real and empate_pron:
                     if resultado_exacto:
-                        pts_obtenidos = 4 if avanza_correcto else 3
+                        pts_obtenidos = (puntos_exacto + puntos_ganador) if avanza_correcto else puntos_exacto
                     else:
-                        pts_obtenidos = 2 if avanza_correcto else 1
+                        pts_obtenidos = (puntos_ganador + puntos_ganador) if avanza_correcto else puntos_ganador
                 else:
                     if resultado_exacto:
-                        pts_obtenidos = 3
+                        pts_obtenidos = puntos_exacto
                     elif avanza_correcto:
-                        pts_obtenidos = 1
+                        pts_obtenidos = puntos_ganador
                     else:
                         pts_obtenidos = 0
             else:
